@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CMakeRunConfigurationManager" shouldGenerate="true" shouldDeleteObsolete="true">
+    <generated />
+  </component>
+  <component name="CMakeSettings">
+    <configurations>
+      <configuration PROFILE_NAME="Debug" CONFIG_NAME="Debug" />
+    </configurations>
+  </component>
+  <component name="CargoProjects">
+    <cargoProject FILE="$PROJECT_DIR$/Cargo.toml" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="59872bca-1cf9-401f-a995-c7f954a22e0f" name="Default Changelist" comment="" />
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="ClangdSettings">
+    <option name="formatViaClangd" value="false" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Rust File" />
+      </list>
+    </option>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="MacroExpansionManager">
+    <option name="directoryName" value="o8tzpfol" />
+  </component>
+  <component name="ProjectId" id="1ff3w2UkgP9Z44sZ9U72IuzuNVk" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">
+    <property name="ASKED_SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
+    <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
+    <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
+    <property name="WebServerToolWindowFactoryState" value="false" />
+    <property name="cf.first.check.clang-format" value="false" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+    <property name="nodejs_package_manager_path" value="npm" />
+    <property name="org.rust.cargo.project.model.PROJECT_DISCOVERY" value="true" />
+    <property name="settings.editor.selected.configurable" value="language.rust.cargo" />
+  </component>
+  <component name="RunManager">
+    <configuration default="true" type="CargoCommandRunConfiguration" factoryName="Cargo Command">
+      <option name="channel" value="DEFAULT" />
+      <option name="command" value="tes" />
+      <option name="allFeatures" value="false" />
+      <option name="emulateTerminal" value="false" />
+      <option name="backtrace" value="SHORT" />
+      <option name="workingDirectory" value="file://$PROJECT_DIR$" />
+      <envs />
+      <method v="2">
+        <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="test" type="CargoCommandRunConfiguration" factoryName="Cargo Command">
+      <option name="channel" value="DEFAULT" />
+      <option name="command" value="test" />
+      <option name="allFeatures" value="true" />
+      <option name="emulateTerminal" value="true" />
+      <option name="backtrace" value="SHORT" />
+      <option name="workingDirectory" value="file://$PROJECT_DIR$" />
+      <envs />
+      <method v="2">
+        <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
+      </method>
+    </configuration>
+    <configuration default="true" type="GradleAppRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" PASS_PARENT_ENVS_2="true">
+      <method v="2">
+        <option name="com.jetbrains.cidr.cpp.gradle.execution.GradleNativeBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+  </component>
+  <component name="RustProjectSettings">
+    <option name="runExternalLinterOnTheFly" value="true" />
+    <option name="runRustfmtOnSave" value="true" />
+    <option name="toolchainHomeDirectory" value="$USER_HOME$/.cargo/bin" />
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="59872bca-1cf9-401f-a995-c7f954a22e0f" name="Default Changelist" comment="" />
+      <created>1596595554653</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1596595554653</updated>
+      <workItem from="1596595555745" duration="3601000" />
+    </task>
+    <task id="LOCAL-00001" summary="Initial commit">
+      <created>1596599019745</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1596599019745</updated>
+    </task>
+    <option name="localTasksCounter" value="2" />
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="Initial commit" />
+    <option name="LAST_COMMIT_MESSAGE" value="Initial commit" />
+  </component>
+  <component name="WindowStateProjectService">
+    <state x="1499" y="842" width="1081" height="710" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1596595579878">
+      <screen x="1080" y="668" width="1920" height="1059" />
+    </state>
+    <state x="1499" y="842" width="1081" height="710" key="#com.intellij.execution.impl.EditConfigurationsDialog/1080.668.1920.1059/0.21.1080.1899@1080.668.1920.1059" timestamp="1596595579878" />
+    <state x="1849" y="903" key="#com.intellij.ide.util.MemberChooser" timestamp="1596596592531">
+      <screen x="1080" y="668" width="1920" height="1059" />
+    </state>
+    <state x="1849" y="903" key="#com.intellij.ide.util.MemberChooser/1080.668.1920.1059/0.21.1080.1899@1080.668.1920.1059" timestamp="1596596592531" />
+    <state x="1598" y="733" key="CommitChangelistDialog2" timestamp="1596599019670">
+      <screen x="1080" y="668" width="1920" height="1059" />
+    </state>
+    <state x="1598" y="733" key="CommitChangelistDialog2/1080.668.1920.1059/0.21.1080.1899@1080.668.1920.1059" timestamp="1596599019670" />
+    <state width="1876" height="311" key="GridCell.Tab.0.bottom" timestamp="1596599156765">
+      <screen x="1080" y="668" width="1920" height="1059" />
+    </state>
+    <state width="1876" height="311" key="GridCell.Tab.0.bottom/1080.668.1920.1059/0.21.1080.1899@1080.668.1920.1059" timestamp="1596599156765" />
+    <state width="1876" height="311" key="GridCell.Tab.0.center" timestamp="1596599156764">
+      <screen x="1080" y="668" width="1920" height="1059" />
+    </state>
+    <state width="1876" height="311" key="GridCell.Tab.0.center/1080.668.1920.1059/0.21.1080.1899@1080.668.1920.1059" timestamp="1596599156764" />
+    <state width="1876" height="311" key="GridCell.Tab.0.left" timestamp="1596599156764">
+      <screen x="1080" y="668" width="1920" height="1059" />
+    </state>
+    <state width="1876" height="311" key="GridCell.Tab.0.left/1080.668.1920.1059/0.21.1080.1899@1080.668.1920.1059" timestamp="1596599156764" />
+    <state width="1876" height="311" key="GridCell.Tab.0.right" timestamp="1596599156764">
+      <screen x="1080" y="668" width="1920" height="1059" />
+    </state>
+    <state width="1876" height="311" key="GridCell.Tab.0.right/1080.668.1920.1059/0.21.1080.1899@1080.668.1920.1059" timestamp="1596599156764" />
+    <state x="1537" y="819" key="SettingsEditor" timestamp="1596598112172">
+      <screen x="1080" y="668" width="1920" height="1059" />
+    </state>
+    <state x="1537" y="819" key="SettingsEditor/1080.668.1920.1059/0.21.1080.1899@1080.668.1920.1059" timestamp="1596598112172" />
+    <state x="1828" y="1099" key="com.intellij.openapi.vcs.update.UpdateOrStatusOptionsDialogupdate-v2" timestamp="1596599140187">
+      <screen x="1080" y="668" width="1920" height="1059" />
+    </state>
+    <state x="1828" y="1099" key="com.intellij.openapi.vcs.update.UpdateOrStatusOptionsDialogupdate-v2/1080.668.1920.1059/0.21.1080.1899@1080.668.1920.1059" timestamp="1596599140187" />
+    <state x="1703" y="881" width="672" height="678" key="search.everywhere.popup" timestamp="1596598093803">
+      <screen x="1080" y="668" width="1920" height="1059" />
+    </state>
+    <state x="1703" y="881" width="672" height="678" key="search.everywhere.popup/1080.668.1920.1059/0.21.1080.1899@1080.668.1920.1059" timestamp="1596598093803" />
+  </component>
+</project>
