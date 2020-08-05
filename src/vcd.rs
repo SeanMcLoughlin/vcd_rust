@@ -29,13 +29,37 @@ impl VCDLoader {
 mod tests {
     use super::*;
     #[test]
-    fn load_vcd_with_file_with_date_command() {
-        let contents = r#"$date
+    fn load_vcd_with_one_date_command_from_str() {
+        let mut contents = r#"$date
             Date text. For example: August 9th, 2020.
         $end"#;
-        let vcd = VCDLoader::load_from_str(&contents).unwrap();
-        assert_ne!(vcd.dates.len(), 0);
+        let mut vcd = VCDLoader::load_from_str(&contents).unwrap();
+        assert_eq!(vcd.dates.len(), 1);
         assert_eq!(vcd.dates[0], "Date text. For example: August 9th, 2020.");
+
+        contents = r#"$date
+            Some other date text.
+        $end"#;
+        vcd = VCDLoader::load_from_str(&contents).unwrap();
+        assert_eq!(vcd.dates.len(), 1);
+        assert_eq!(vcd.dates[0], "Some other date text.");
+        
+    }
+
+    #[test]
+    fn load_vcd_with_multiple_date_commands_from_str() {
+        let contents = r#"$date
+            Date text 1
+        $end
+        $date
+            Date text 2
+        $end"#;
+        
+        let vcd = VCDLoader::load_from_str(&contents).unwrap();
+        assert_eq!(vcd.dates.len(), 2);
+        assert_eq!(vcd.dates, vec!["Date text 1", "Date text 2"]);
+
+
     }
 
     #[test]
