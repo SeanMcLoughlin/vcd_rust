@@ -2,12 +2,13 @@ use crate::error::LoadError;
 use crate::parser;
 
 pub struct VCD {
-    pub dates: Vec<String>,
+    pub date: String,
+    pub version: String,
 }
 
 impl VCD {
     pub fn new() -> VCD {
-        VCD { dates: Vec::new() }
+        VCD { date: String::new(), version: String::new() }
     }
 }
 
@@ -28,49 +29,63 @@ impl VCDLoader {
 #[cfg(test)]
 mod tests {
     use super::*;
-    #[test]
-    fn load_vcd_with_one_date_command_from_str() {
-        let mut contents = r#"$date
-            Date text. For example: August 9th, 2020.
-        $end"#;
-        let mut vcd = VCDLoader::load_from_str(&contents).unwrap();
-        assert_eq!(vcd.dates.len(), 1);
-        assert_eq!(vcd.dates[0], "Date text. For example: August 9th, 2020.");
-
-        contents = r#"$date
-            Some other date text.
-        $end"#;
-        vcd = VCDLoader::load_from_str(&contents).unwrap();
-        assert_eq!(vcd.dates.len(), 1);
-        assert_eq!(vcd.dates[0], "Some other date text.");
-        
-    }
 
     #[test]
-    fn load_vcd_with_multiple_date_commands_from_str() {
+    fn date_command() {
         let contents = r#"$date
-            Date text 1
-        $end
-        $date
-            Date text 2
+            Date text
         $end"#;
         
         let vcd = VCDLoader::load_from_str(&contents).unwrap();
-        assert_eq!(vcd.dates.len(), 2);
-        assert_eq!(vcd.dates, vec!["Date text 1", "Date text 2"]);
-
-
+        assert_eq!(vcd.date, "Date text".to_string());
     }
 
     #[test]
-    #[allow(dead_code)]
-    fn load_vcd_file_from_string_with_invalid_contents_throws_load_error() {
-        // TODO
+    #[should_panic(expected = "$date missing an $end")]
+    fn date_command_with_no_end_throws_load_error() {
+        let contents = r#"$date
+            Date text"#;
+        VCDLoader::load_from_str(&contents).unwrap();
     }
 
     #[test]
-    #[allow(dead_code)]
-    fn load_vcd_file_from_file_with_invalid_contents_throws_load_error() {
-        // TODO
+    fn version_command() {
+        let contents = r#"$version
+            The version number is 1.0
+        $end"#;
+        let vcd = VCDLoader::load_from_str(&contents).unwrap();
+        assert_eq!(vcd.version, "The version number is 1.0");
+    }
+
+    #[test]
+    #[should_panic(expected = "$version missing an $end")]
+    fn version_command_with_no_end_throws_load_error() {
+        let contents = r#"$version
+            This version has no $end"#;
+        VCDLoader::load_from_str(&contents).unwrap();
+    }
+
+    #[test]
+    #[should_panic(expected = "Multiple $version commands is invalid")]
+    fn vcd_file_with_multiple_versions_throws_error() {
+        let contents = r#"$version
+            Version 1.0
+        $end
+        $version
+            Version 2.0. Which version is the right version?
+        $end"#;
+        VCDLoader::load_from_str(&contents).unwrap();
+    }
+
+    #[test]
+    #[should_panic(expected = "Multiple $date commands is invalid")]
+    fn vcd_file_with_multiple_dates_throws_error() {
+        let contents = r#"$date
+            May 31st, 2020
+        $end
+        $date
+            August 9th, 2020. Which is the correct date?
+        $end"#;
+        VCDLoader::load_from_str(&contents).unwrap();
     }
 }
