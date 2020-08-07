@@ -1,5 +1,6 @@
 use crate::error::LoadError;
 use crate::vcd::VCD;
+use crate::types::{TimeScale};
 
 pub fn parse(s: &str) -> Result<VCD, LoadError> {
     let vcd = VCD {
@@ -18,8 +19,9 @@ fn get_version_from_lines(lines: &str) -> Result<String, LoadError> {
     get_lines_between_command_and_end(lines, "$version")
 }
 
-fn get_timescale_from_lines(lines: &str) -> Result<String, LoadError> {
-    get_lines_between_command_and_end(lines, "$timescale")
+fn get_timescale_from_lines(lines: &str) -> Result<TimeScale, LoadError> {
+    let timescale_str = get_lines_between_command_and_end(lines, "$timescale")?;
+    Ok(TimeScale::load_from_str(timescale_str))
 }
 
 fn get_lines_between_command_and_end(lines: &str, command: &str) -> Result<String, LoadError> {

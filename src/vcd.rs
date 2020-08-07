@@ -1,15 +1,16 @@
 use crate::error::LoadError;
 use crate::parser;
+use crate::types::TimeScale;
 
 pub struct VCD {
     pub date: String,
     pub version: String,
-    pub timescale: String,
+    pub timescale: TimeScale,
 }
 
 impl VCD {
     pub fn new() -> VCD {
-        VCD { date: String::new(), version: String::new(), timescale: String::new() }
+        VCD { date: String::new(), version: String::new(), timescale: TimeScale::new() }
     }
 }
 
@@ -30,6 +31,7 @@ impl VCDLoader {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::types::TimeUnit;
 
     #[test]
     fn date_command() {
@@ -118,6 +120,6 @@ mod tests {
     fn timescale_command() {
         let contents = "$timescale 1ps $end";
         let vcd = VCDLoader::load_from_str(&contents).unwrap();
-        assert_eq!(vcd.timescale, "1ps");
+        assert_eq!(vcd.timescale, TimeScale{ value: 1, unit: TimeUnit::PS });
     }
 }
