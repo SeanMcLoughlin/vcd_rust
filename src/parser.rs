@@ -5,6 +5,7 @@ pub fn parse(s: &str) -> Result<VCD, LoadError> {
     let vcd = VCD {
         date: get_date_from_lines(s).unwrap(),
         version: get_version_from_lines(s).unwrap(),
+        timescale: get_timescale_from_lines(s).unwrap(),
     };
     Ok(vcd)
 }
@@ -15,6 +16,10 @@ fn get_date_from_lines(lines: &str) -> Result<String, LoadError> {
 
 fn get_version_from_lines(lines: &str) -> Result<String, LoadError> {
     get_lines_between_command_and_end(lines, "$version")
+}
+
+fn get_timescale_from_lines(lines: &str) -> Result<String, LoadError> {
+    get_lines_between_command_and_end(lines, "$timescale")
 }
 
 fn get_lines_between_command_and_end(lines: &str, command: &str) -> Result<String, LoadError> {
