@@ -1,6 +1,7 @@
 pub mod error;
 pub mod parser;
 pub mod vcd;
+pub mod types;
 
 pub use crate::vcd::VCDLoader;
 
