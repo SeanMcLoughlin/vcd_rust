@@ -32,10 +32,16 @@ mod tests {
 
     #[test]
     fn date_command() {
+        let contents = "$date Date text $end";
+        let vcd = VCDLoader::load_from_str(&contents).unwrap();
+        assert_eq!(vcd.date, "Date text".to_string());
+    }
+
+    #[test]
+    fn date_command_newline() {
         let contents = r#"$date
             Date text
         $end"#;
-        
         let vcd = VCDLoader::load_from_str(&contents).unwrap();
         assert_eq!(vcd.date, "Date text".to_string());
     }
@@ -49,7 +55,18 @@ mod tests {
     }
 
     #[test]
-    fn version_command() {
+    #[should_panic(expected = "$date missing an $end")]
+    fn date_command_with_no_end_and_new_command_begins_throws_load_error() {
+        let contents = r#"$date
+            Date text
+        $version
+            The version is 1.0
+        $end"#;
+        VCDLoader::load_from_str(&contents).unwrap();
+    }
+
+    #[test]
+    fn version_command_newline() {
         let contents = r#"$version
             The version number is 1.0
         $end"#;
@@ -58,10 +75,17 @@ mod tests {
     }
 
     #[test]
+    fn version_command() {
+        let contents = r#"$version This version number is 2.0 $end"#;
+        let vcd = VCDLoader::load_from_str(&contents).unwrap();
+        assert_eq!(vcd.version, "This version number is 2.0");
+    }
+
+    #[test]
     #[should_panic(expected = "$version missing an $end")]
     fn version_command_with_no_end_throws_load_error() {
         let contents = r#"$version
-            This version has no $end"#;
+            This version has no end"#;
         VCDLoader::load_from_str(&contents).unwrap();
     }
 
