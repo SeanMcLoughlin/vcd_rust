@@ -4,11 +4,12 @@ use crate::parser;
 pub struct VCD {
     pub date: String,
     pub version: String,
+    pub timescale: String,
 }
 
 impl VCD {
     pub fn new() -> VCD {
-        VCD { date: String::new(), version: String::new() }
+        VCD { date: String::new(), version: String::new(), timescale: String::new() }
     }
 }
 
@@ -111,5 +112,12 @@ mod tests {
             August 9th, 2020. Which is the correct date?
         $end"#;
         VCDLoader::load_from_str(&contents).unwrap();
+    }
+
+    #[test]
+    fn timescale_command() {
+        let contents = "$timescale 1ps $end";
+        let vcd = VCDLoader::load_from_str(&contents).unwrap();
+        assert_eq!(vcd.timescale, "1ps");
     }
 }
