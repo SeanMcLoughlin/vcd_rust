@@ -6,11 +6,12 @@ pub struct VCD {
     pub date: String,
     pub version: String,
     pub timescale: TimeScale,
+    pub comments: Vec<String>,
 }
 
 impl VCD {
     pub fn new() -> VCD {
-        VCD { date: String::new(), version: String::new(), timescale: TimeScale::new() }
+        VCD { date: String::new(), version: String::new(), timescale: TimeScale::new(), comments: Vec::new() }
     }
 }
 
@@ -124,4 +125,31 @@ mod tests {
         let vcd = VCDLoader::load_from_str(&contents).unwrap();
         assert_eq!(vcd.timescale, TimeScale{ value: 1, unit: TimeUnit::PS });
     }
+
+    #[test]
+    fn comment_command_with_one_comment() {
+        let contents = "$comment this is a comment $end";
+        let vcd = VCDLoader::load_from_str(&contents).unwrap();
+        assert_eq!(vcd.comments, vec!["this is a comment"]);
+    }
+
+    #[test]
+    fn comment_command_with_multiple_comments() {
+        let contents = r#"$comment
+            This is comment 1
+        $end
+        $comment
+            This is comment 2
+        $end"#;
+        let vcd = VCDLoader::load_from_str(&contents).unwrap();
+        assert_eq!(vcd.comments, vec!["This is comment 1", "This is comment 2"]);
+    }
+
+    #[test]
+    #[should_panic(expected = "$comment missing an $end")]
+    fn comment_command_with_no_end_throws_load_error() {
+        let contents = "$comment This comment is missing an end";
+        VCDLoader::load_from_str(&contents).unwrap();
+    }
+
 }
