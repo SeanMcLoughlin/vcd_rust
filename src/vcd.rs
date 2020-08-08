@@ -69,12 +69,14 @@ mod tests {
     }
 
     #[test]
-    fn version_command_newline() {
+    fn version_command_multiple_newlines() {
         let contents = r#"$version
-            The version number is 1.0
+
+            The version number is 1.1
+
         $end"#;
         let vcd = VCDLoader::load_from_str(&contents).unwrap();
-        assert_eq!(vcd.version, "The version number is 1.0");
+        assert_eq!(vcd.version, "The version number is 1.1");
     }
 
     #[test]
