@@ -1,5 +1,5 @@
 [package]
-name = "vcd-rust"
+name = "vcd_rust"
 version = "0.1.0"
 authors = ["Sean McLoughlin <smclough@protonmail.com>"]
 edition = "2018"
