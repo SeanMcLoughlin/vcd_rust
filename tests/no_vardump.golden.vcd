@@ -1,0 +1,13 @@
+$date
+   August 9th, 2020
+$end
+$version
+   Version 4.20
+$end
+$comment
+   The golden VCD test file with no dumped vars
+$end
+$comment
+   Here's another comment for good measure
+$end
+$timescale 1ps $end
