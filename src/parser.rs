@@ -2,40 +2,40 @@ use crate::error::LoadError;
 use crate::types::TimeScale;
 use crate::vcd::VCD;
 
-pub fn parse(s: &str) -> Result<VCD, LoadError> {
+pub fn parse(s: String) -> Result<VCD, LoadError> {
     let vcd = VCD {
-        date: get_date_from_lines(s).unwrap(),
-        version: get_version_from_lines(s).unwrap(),
-        timescale: get_timescale_from_lines(s).unwrap(),
-        comments: get_comments_from_lines(s).unwrap(),
+        date: get_date_from_lines(&s).unwrap(),
+        version: get_version_from_lines(&s).unwrap(),
+        timescale: get_timescale_from_lines(&s).unwrap(),
+        comments: get_comments_from_lines(&s).unwrap(),
     };
     Ok(vcd)
 }
 
-fn get_date_from_lines(lines: &str) -> Result<String, LoadError> {
+fn get_date_from_lines(lines: &String) -> Result<String, LoadError> {
     let mut parsed_date = CommandParser::new()
         .lines(lines)
-        .command("$date")
+        .command(&String::from("$date"))
         .enforce_only_one_of_command(true)
         .parse_command()
         .unwrap();
     Ok(parsed_date.remove(0))
 }
 
-fn get_version_from_lines(lines: &str) -> Result<String, LoadError> {
+fn get_version_from_lines(lines: &String) -> Result<String, LoadError> {
     let mut parsed_version = CommandParser::new()
         .lines(lines)
-        .command("$version")
+        .command(&String::from("$version"))
         .enforce_only_one_of_command(true)
         .parse_command()
         .unwrap();
     Ok(parsed_version.remove(0))
 }
 
-fn get_timescale_from_lines(lines: &str) -> Result<TimeScale, LoadError> {
+fn get_timescale_from_lines(lines: &String) -> Result<TimeScale, LoadError> {
     let timescale_str = CommandParser::new()
         .lines(lines)
-        .command("$timescale")
+        .command(&String::from("$timescale"))
         .enforce_only_one_of_command(true)
         .parse_command()
         .unwrap()
@@ -43,40 +43,40 @@ fn get_timescale_from_lines(lines: &str) -> Result<TimeScale, LoadError> {
     Ok(TimeScale::load_from_str(timescale_str))
 }
 
-fn get_comments_from_lines(lines: &str) -> Result<Vec<String>, LoadError> {
+fn get_comments_from_lines(lines: &String) -> Result<Vec<String>, LoadError> {
     CommandParser::new()
         .lines(lines)
-        .command("$comment")
+        .command(&String::from("$comment"))
         .enforce_only_one_of_command(false)
         .parse_command()
 }
 
-struct CommandParser<'a> {
-    lines: &'a str,
-    command: &'a str,
+struct CommandParser {
+    lines: String,
+    command: String,
     enforce_only_one_of_command: bool,
 }
 
-impl<'a> CommandParser<'a> {
-    pub fn new() -> CommandParser<'a> {
+impl CommandParser {
+    pub fn new() -> CommandParser {
         CommandParser {
-            lines: "",
-            command: "",
+            lines: String::from(""),
+            command: String::from(""),
             enforce_only_one_of_command: false,
         }
     }
 
-    pub fn lines(&mut self, lines: &'a str) -> &'a mut CommandParser {
-        self.lines = lines;
+    pub fn lines(&mut self, lines: &String) -> &mut CommandParser {
+        self.lines = lines.clone();  // FIXME: Remove clone?
         self
     }
 
-    pub fn command(&mut self, command_in: &'a str) -> &'a mut CommandParser {
-        self.command = command_in;
+    pub fn command(&mut self, command_in: &String) -> & mut CommandParser {
+        self.command = command_in.clone();  // FIXME: Remove clone?
         self
     }
 
-    pub fn enforce_only_one_of_command(&mut self, enforcement: bool) -> &'a mut CommandParser {
+    pub fn enforce_only_one_of_command(&mut self, enforcement: bool) -> & mut CommandParser {
         self.enforce_only_one_of_command = enforcement;
         self
     }
@@ -86,37 +86,39 @@ impl<'a> CommandParser<'a> {
         let mut current_command_string = String::new();
         let mut command_vec = Vec::new();
         let mut line_num = 1;
-        let words: Vec<_> = self.lines.split(" ").filter(|c| !c.is_empty()).collect();
-        for word in words {
-            let word_wo_newlines = word.replace("\n", "");
+        for line in self.lines.lines() {
+            let words: Vec<_> = line.split(" ").filter(|c| !c.is_empty()).collect();
+            for word in words {
+                let word_wo_newlines = word.replace("\n", "");
 
-            if self.is_different_command(&word_wo_newlines, self.command)
-                && currently_parsing_command
-            {
-                return Err(LoadError {
-                    line: line_num,
-                    info: format!("{} missing an $end", self.command),
-                });
-            }
-
-            if self.is_end(&word_wo_newlines) && current_command_string.len() != 0 {
-                currently_parsing_command = false;
-                command_vec.push(current_command_string.trim().to_string());
-                current_command_string = String::new();
-            } else if currently_parsing_command {
-                current_command_string = current_command_string + " " + &word_wo_newlines[..];
-            } else if self.is_command(&word_wo_newlines, self.command) {
-                if command_vec.len() != 0 && self.enforce_only_one_of_command {
+                if self.is_different_command(&word_wo_newlines, &self.command)
+                    && currently_parsing_command
+                {
                     return Err(LoadError {
                         line: line_num,
-                        info: format!("Multiple {} commands is invalid", self.command),
+                        info: format!("{} missing an $end", self.command),
                     });
                 }
-                currently_parsing_command = true;
-            }
 
-            if self.is_end_of_line(word) {
-                line_num += 1;
+                if self.is_end(&word_wo_newlines) && current_command_string.len() != 0 {
+                    currently_parsing_command = false;
+                    command_vec.push(current_command_string.trim().to_string());
+                    current_command_string = String::new();
+                } else if currently_parsing_command {
+                    current_command_string = current_command_string + " " + &word_wo_newlines[..];
+                } else if self.is_command(&word_wo_newlines, &self.command) {
+                    if command_vec.len() != 0 && self.enforce_only_one_of_command {
+                        return Err(LoadError {
+                            line: line_num,
+                            info: format!("Multiple {} commands is invalid", self.command),
+                        });
+                    }
+                    currently_parsing_command = true;
+                }
+
+                if self.is_end_of_line(word) {
+                    line_num += 1;
+                }
             }
         }
 
@@ -142,7 +144,7 @@ impl<'a> CommandParser<'a> {
         word == "$end"
     }
 
-    fn is_command(&self, word: &String, command: &str) -> bool {
+    fn is_command(&self, word: &String, command: &String) -> bool {
         word == command
     }
 
