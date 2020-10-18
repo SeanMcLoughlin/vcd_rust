@@ -67,16 +67,16 @@ impl CommandParser {
     }
 
     pub fn lines(&mut self, lines: &String) -> &mut CommandParser {
-        self.lines = lines.clone();  // FIXME: Remove clone?
+        self.lines = lines.clone(); // FIXME: Remove clone?
         self
     }
 
-    pub fn command(&mut self, command_in: &String) -> & mut CommandParser {
-        self.command = command_in.clone();  // FIXME: Remove clone?
+    pub fn command(&mut self, command_in: &String) -> &mut CommandParser {
+        self.command = command_in.clone(); // FIXME: Remove clone?
         self
     }
 
-    pub fn enforce_only_one_of_command(&mut self, enforcement: bool) -> & mut CommandParser {
+    pub fn enforce_only_one_of_command(&mut self, enforcement: bool) -> &mut CommandParser {
         self.enforce_only_one_of_command = enforcement;
         self
     }
@@ -150,5 +150,151 @@ impl CommandParser {
 
     fn is_end_of_line(&self, word: &str) -> bool {
         word.contains("\n")
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::types::TimeUnit;
+
+    #[test]
+    fn date_command() {
+        let contents = String::from("$date Date text $end");
+        let vcd = parse(contents).unwrap();
+        assert_eq!(vcd.date, "Date text".to_string());
+    }
+
+    #[test]
+    fn date_command_newline() {
+        let contents = String::from(
+            r#"$date
+    Date text
+$end"#,
+        );
+        let vcd = parse(contents).unwrap();
+        assert_eq!(vcd.date, "Date text".to_string());
+    }
+
+    #[test]
+    #[should_panic(expected = "$date missing an $end")]
+    fn date_command_with_no_end_throws_load_error() {
+        let contents = String::from(
+            r#"$date
+Date text"#,
+        );
+        parse(contents).unwrap();
+    }
+
+    #[test]
+    #[should_panic(expected = "$date missing an $end")]
+    fn date_command_with_no_end_and_new_command_begins_throws_load_error() {
+        let contents = String::from(
+            r#"$date
+    Date text
+$version
+    The version is 1.0
+$end"#,
+        );
+        parse(contents).unwrap();
+    }
+
+    #[test]
+    fn version_command_multiple_newlines() {
+        let contents = String::from(
+            r#"$version
+
+The version number is 1.1
+
+$end"#,
+        );
+        let vcd = parse(contents).unwrap();
+        assert_eq!(vcd.version, "The version number is 1.1");
+    }
+
+    #[test]
+    fn version_command() {
+        let contents = String::from(r#"$version This version number is 2.0 $end"#);
+        let vcd = parse(contents).unwrap();
+        assert_eq!(vcd.version, "This version number is 2.0");
+    }
+
+    #[test]
+    #[should_panic(expected = "$version missing an $end")]
+    fn version_command_with_no_end_throws_load_error() {
+        let contents = String::from(
+            r#"$version
+            This version has no end"#,
+        );
+        parse(contents).unwrap();
+    }
+
+    #[test]
+    #[should_panic(expected = "Multiple $version commands is invalid")]
+    fn vcd_file_with_multiple_versions_throws_error() {
+        let contents = String::from(
+            r#"$version
+    Version 1.0
+$end
+$version
+    Version 2.0. Which version is the right version?
+$end"#,
+        );
+        parse(contents).unwrap();
+    }
+
+    #[test]
+    #[should_panic(expected = "Multiple $date commands is invalid")]
+    fn vcd_file_with_multiple_dates_throws_error() {
+        let contents = String::from(
+            r#"$date
+    May 31st, 2020
+$end
+$date
+    August 9th, 2020. Which is the correct date?
+$end"#,
+        );
+        parse(contents).unwrap();
+    }
+
+    #[test]
+    fn timescale_command() {
+        let contents = String::from("$timescale 1ps $end");
+        let vcd = parse(contents).unwrap();
+        assert_eq!(
+            vcd.timescale,
+            TimeScale {
+                value: 1,
+                unit: TimeUnit::PS
+            }
+        );
+    }
+
+    #[test]
+    fn comment_command_with_one_comment() {
+        let contents = String::from("$comment this is a comment $end");
+        let vcd = parse(contents).unwrap();
+        assert_eq!(vcd.comments, vec!["this is a comment"]);
+    }
+
+    #[test]
+    fn comment_command_with_multiple_comments() {
+        let contents = String::from(
+            r#"$comment
+    This is comment 1
+$end
+$comment
+    This is comment 2
+$end"#,
+        );
+        let vcd = parse(contents).unwrap();
+        assert_eq!(vcd.comments, vec!["This is comment 1", "This is comment 2"]);
+    }
+
+    #[test]
+    #[should_panic(expected = "$comment missing an $end")]
+    fn comment_command_with_no_end_throws_load_error() {
+        let contents = String::from("$comment This comment is missing an end");
+        parse(contents).unwrap();
     }
 }
