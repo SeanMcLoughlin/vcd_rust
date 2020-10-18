@@ -1,5 +1,23 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
+  <component name="BranchesTreeState">
+    <expand>
+      <path>
+        <item name="ROOT" type="e8cecc67:BranchNodeDescriptor" />
+        <item name="LOCAL_ROOT" type="e8cecc67:BranchNodeDescriptor" />
+      </path>
+      <path>
+        <item name="ROOT" type="e8cecc67:BranchNodeDescriptor" />
+        <item name="REMOTE_ROOT" type="e8cecc67:BranchNodeDescriptor" />
+      </path>
+      <path>
+        <item name="ROOT" type="e8cecc67:BranchNodeDescriptor" />
+        <item name="REMOTE_ROOT" type="e8cecc67:BranchNodeDescriptor" />
+        <item name="GROUP_NODE:origin" type="e8cecc67:BranchNodeDescriptor" />
+      </path>
+    </expand>
+    <select />
+  </component>
   <component name="CMakeRunConfigurationManager" shouldGenerate="true" shouldDeleteObsolete="true">
     <generated />
   </component>
@@ -12,7 +30,12 @@
     <cargoProject FILE="$PROJECT_DIR$/Cargo.toml" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="59872bca-1cf9-401f-a995-c7f954a22e0f" name="Default Changelist" comment="" />
+    <list default="true" id="59872bca-1cf9-401f-a995-c7f954a22e0f" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/vcd-rust.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/vcd-rust.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/parser.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/parser.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/vcd.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/vcd.rs" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -51,6 +74,11 @@
     <property name="settings.editor.selected.configurable" value="language.rust.cargo" />
   </component>
   <component name="RunManager">
+    <configuration default="true" type="CMakeRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" PASS_PARENT_ENVS_2="true">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
     <configuration default="true" type="CargoCommandRunConfiguration" factoryName="Cargo Command">
       <option name="channel" value="DEFAULT" />
       <option name="command" value="tes" />
@@ -75,16 +103,12 @@
         <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
       </method>
     </configuration>
-    <configuration default="true" type="GradleAppRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" PASS_PARENT_ENVS_2="true">
-      <method v="2">
-        <option name="com.jetbrains.cidr.cpp.gradle.execution.GradleNativeBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
-      </method>
-    </configuration>
   </component>
   <component name="RustProjectSettings">
     <option name="runExternalLinterOnTheFly" value="true" />
     <option name="runRustfmtOnSave" value="true" />
     <option name="toolchainHomeDirectory" value="$USER_HOME$/.cargo/bin" />
+    <option name="version" value="2" />
   </component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
@@ -109,14 +133,27 @@
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
   </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+    <option name="oldMeFiltersMigrated" value="true" />
+  </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="Initial commit" />
     <option name="LAST_COMMIT_MESSAGE" value="Initial commit" />
   </component>
   <component name="WindowStateProjectService">
-    <state x="1499" y="842" width="1081" height="710" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1596595579878">
-      <screen x="1080" y="668" width="1920" height="1059" />
+    <state x="419" y="759" width="1081" height="710" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1603041388687">
+      <screen x="0" y="587" width="1920" height="1048" />
     </state>
+    <state x="419" y="759" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.587.1920.1048/1920.0.1080.1920@0.587.1920.1048" timestamp="1603041388687" />
     <state x="1499" y="842" width="1081" height="710" key="#com.intellij.execution.impl.EditConfigurationsDialog/1080.668.1920.1059/0.21.1080.1899@1080.668.1920.1059" timestamp="1596595579878" />
     <state x="1849" y="903" key="#com.intellij.ide.util.MemberChooser" timestamp="1596596592531">
       <screen x="1080" y="668" width="1920" height="1059" />
@@ -146,9 +183,10 @@
       <screen x="1080" y="668" width="1920" height="1059" />
     </state>
     <state x="1537" y="819" key="SettingsEditor/1080.668.1920.1059/0.21.1080.1899@1080.668.1920.1059" timestamp="1596598112172" />
-    <state x="1828" y="1099" key="com.intellij.openapi.vcs.update.UpdateOrStatusOptionsDialogupdate-v2" timestamp="1596599140187">
-      <screen x="1080" y="668" width="1920" height="1059" />
+    <state x="748" y="1014" width="419" height="166" key="com.intellij.openapi.vcs.update.UpdateOrStatusOptionsDialogupdate-v2" timestamp="1603041137936">
+      <screen x="0" y="587" width="1920" height="1048" />
     </state>
+    <state x="748" y="1014" width="419" height="166" key="com.intellij.openapi.vcs.update.UpdateOrStatusOptionsDialogupdate-v2/0.587.1920.1048/1920.0.1080.1920@0.587.1920.1048" timestamp="1603041137936" />
     <state x="1828" y="1099" key="com.intellij.openapi.vcs.update.UpdateOrStatusOptionsDialogupdate-v2/1080.668.1920.1059/0.21.1080.1899@1080.668.1920.1059" timestamp="1596599140187" />
     <state x="1703" y="881" width="672" height="678" key="search.everywhere.popup" timestamp="1596598093803">
       <screen x="1080" y="668" width="1920" height="1059" />
