@@ -1,6 +1,6 @@
 use crate::error::LoadError;
 use crate::parser;
-use crate::types::TimeScale;
+use crate::types::{timescale::TimeScale, vcd_variable::VCDVariable};
 use std::fs::File;
 use std::io::Read;
 
@@ -9,6 +9,7 @@ pub struct VCD {
     pub version: String,
     pub timescale: TimeScale,
     pub comments: Vec<String>,
+    pub variables: Vec<VCDVariable>,
 }
 
 impl VCD {
@@ -18,6 +19,7 @@ impl VCD {
             version: String::new(),
             timescale: TimeScale::new(),
             comments: Vec::new(),
+            variables: Vec::new(),
         }
     }
 }
