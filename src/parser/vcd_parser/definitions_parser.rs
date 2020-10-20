@@ -205,4 +205,82 @@ $var tri 1 } my_tri $end"#,
         let act_vars = DefinitionsParser::new().lines(&lines).parse().unwrap();
         assert_eq!(exp_vars, act_vars);
     }
+
+    #[test]
+    fn parse_one_lvl1_scope_with_one_var_with_var_parameters_on_newlines() {
+        let lines = String::from(
+            r#"$scope task lvl_1 $end
+$var 
+event
+2
+p
+my_ref
+$end"#,
+        );
+        let exp_var: VCDVariable = VCDVariableBuilder::default()
+            .scope(get_scope_vec(vec![(VCDScopeType::Task, "lvl_1")]))
+            .data_type(VCDDataType::Event)
+            .bit_width(2)
+            .ascii_identifier("p".to_string())
+            .name("my_ref".to_string())
+            .build()
+            .unwrap();
+        let exp_vars = vec![exp_var];
+        let act_vars = DefinitionsParser::new().lines(&lines).parse().unwrap();
+        assert_eq!(exp_vars, act_vars);
+    }
+
+    #[test]
+    fn parse_one_lvl1_scope_with_scope_parameters_on_newlines() {
+        let lines = String::from(
+            r#"$scope 
+module 
+name 
+$end
+$var wire 8 # data $end"#,
+        );
+        let exp_var: VCDVariable = VCDVariableBuilder::default()
+            .scope(get_scope_vec(vec![(VCDScopeType::Module, "name")]))
+            .data_type(VCDDataType::Wire)
+            .bit_width(8)
+            .ascii_identifier("#".to_string())
+            .name("data".to_string())
+            .build()
+            .unwrap();
+        let exp_vars = vec![exp_var];
+        let act_vars = DefinitionsParser::new().lines(&lines).parse().unwrap();
+        assert_eq!(exp_vars, act_vars);
+    }
+
+    #[test]
+    #[ignore]
+    fn var_missing_end_same_line_throws_error() {} // TODO
+
+    #[test]
+    #[ignore]
+    fn var_missing_end_different_line_throws_error() {} // TODO
+
+    #[test]
+    #[ignore]
+    fn var_missing_var_type_throws_error() {} // TODO
+
+    #[test]
+    #[ignore]
+    fn var_missing_size_throws_error() {} // TODO
+
+    #[test]
+    #[ignore]
+    fn var_missing_identifier_throws_error() {} // TODO
+
+    #[test]
+    #[ignore]
+    fn var_missing_reference_throws_error() {} // TODO
+
+    #[test]
+    #[ignore]
+    fn var_declared_with_no_scope_throws_error() {} // TODO
+
+    #[test]
+    #[ignore]
+    fn upscope_with_empty_hierarchy_throws_error() {} // TODO
 }
