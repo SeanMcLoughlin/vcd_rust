@@ -30,9 +30,9 @@
     <cargoProject FILE="$PROJECT_DIR$/Cargo.toml" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="59872bca-1cf9-401f-a995-c7f954a22e0f" name="Default Changelist" comment="Initial implementation of variable definition parsing">
+    <list default="true" id="59872bca-1cf9-401f-a995-c7f954a22e0f" name="Default Changelist" comment="Fix clippy task">
+      <change beforePath="$PROJECT_DIR$/.github/workflows/rust.yml" beforeDir="false" afterPath="$PROJECT_DIR$/.github/workflows/rust.yml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/parser/vcd_parser/definitions_parser.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/parser/vcd_parser/definitions_parser.rs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -102,11 +102,6 @@
         <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
       </method>
     </configuration>
-    <configuration default="true" type="GradleAppRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" PASS_PARENT_ENVS_2="true">
-      <method v="2">
-        <option name="com.jetbrains.cidr.cpp.gradle.execution.GradleNativeBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
-      </method>
-    </configuration>
   </component>
   <component name="RustProjectSettings">
     <option name="runExternalLinterOnTheFly" value="true" />
@@ -172,7 +167,14 @@
       <option name="project" value="LOCAL" />
       <updated>1603077667594</updated>
     </task>
-    <option name="localTasksCounter" value="7" />
+    <task id="LOCAL-00007" summary="Fix clippy task">
+      <created>1603163912188</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1603163912188</updated>
+    </task>
+    <option name="localTasksCounter" value="8" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -195,7 +197,8 @@
     <MESSAGE value="Move unit tests from vcd.rs to parser.rs" />
     <MESSAGE value=".idea files" />
     <MESSAGE value="Initial implementation of variable definition parsing" />
-    <option name="LAST_COMMIT_MESSAGE" value="Initial implementation of variable definition parsing" />
+    <MESSAGE value="Fix clippy task" />
+    <option name="LAST_COMMIT_MESSAGE" value="Fix clippy task" />
   </component>
   <component name="WindowStateProjectService">
     <state x="419" y="759" width="1081" height="710" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1603076420638">
@@ -256,10 +259,10 @@
     </state>
     <state x="457" y="736" key="SettingsEditor/0.587.1920.1048/1920.0.1080.1920@0.587.1920.1048" timestamp="1603041639424" />
     <state x="1537" y="819" key="SettingsEditor/1080.668.1920.1059/0.21.1080.1899@1080.668.1920.1059" timestamp="1596598112172" />
-    <state x="555" y="847" width="800" height="524" key="Vcs.Push.Dialog.v2" timestamp="1603077673296">
+    <state x="555" y="847" width="800" height="524" key="Vcs.Push.Dialog.v2" timestamp="1603163915351">
       <screen x="0" y="587" width="1920" height="1048" />
     </state>
-    <state x="555" y="847" width="800" height="524" key="Vcs.Push.Dialog.v2/0.587.1920.1048/1920.0.1080.1920@0.587.1920.1048" timestamp="1603077673296" />
+    <state x="555" y="847" width="800" height="524" key="Vcs.Push.Dialog.v2/0.587.1920.1048/1920.0.1080.1920@0.587.1920.1048" timestamp="1603163915351" />
     <state x="748" y="1014" width="430" height="170" key="com.intellij.openapi.vcs.update.UpdateOrStatusOptionsDialogupdate-v2" timestamp="1603062838059">
       <screen x="0" y="587" width="1920" height="1048" />
     </state>
