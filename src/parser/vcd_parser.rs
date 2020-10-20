@@ -16,8 +16,12 @@ pub trait VCDParser {
         word == "$end"
     }
 
-    fn is_command(word: &String, command: &String) -> bool {
+    fn is_this_command(word: &String, command: &String) -> bool {
         word == command
+    }
+
+    fn is_a_command(word: &String) -> bool {
+        word.starts_with("$")
     }
 
     fn is_end_of_line(word: &String) -> bool {

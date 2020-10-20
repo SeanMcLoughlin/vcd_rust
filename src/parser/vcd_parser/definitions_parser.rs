@@ -8,58 +8,84 @@ pub struct DefinitionsParser {
 
 impl VCDParser for DefinitionsParser {
     fn parse(&self) -> Result<Vec<VCDVariable>, LoadError> {
+        let mut current_command = String::new();
         let mut current_var = VCDVariable::new();
         let mut current_scope = VCDScope::new();
         let mut scope_stack = Vec::<VCDScope>::new();
 
         let mut defining_var = false;
-        let mut downscope = false;
+        let mut upscope = false;
         let mut upscope = false;
 
         let mut variable_list = Vec::<VCDVariable>::new();
 
-        for line in self.lines.lines() {
+        for (line_num, line) in self.lines.lines().enumerate() {
             for word in DefinitionsParser::split_line_into_words(line) {
                 let word_wo_newlines = DefinitionsParser::remove_newlines(word);
                 match word_wo_newlines.as_str() {
-                    "$scope" => {
-                        downscope = true;
-                        continue;
-                    }
-                    "$upscope" => {
-                        upscope = true;
-                        continue;
-                    }
-                    "$var" => {
-                        defining_var = true;
-                        continue;
-                    }
                     "$end" => {
-                        if downscope {
-                            scope_stack.push(current_scope);
-                            current_scope = VCDScope::new();
-                        } else if upscope {
-                            scope_stack.pop();
-                        } else if defining_var {
-                            current_var.scope = scope_stack.clone();
-                            variable_list.push(current_var);
-                            current_var = VCDVariable::new();
+                        match current_command.as_str() {
+                            "$scope" => {
+                                scope_stack.push(current_scope);
+                                current_scope = VCDScope::new();
+                            }
+                            "$upscope" => {
+                                scope_stack.pop();
+                            }
+                            "$var" => {
+                                current_var.scope = scope_stack.clone();
+                                variable_list.push(current_var);
+                                current_var = VCDVariable::new();
+                            }
+                            _ => {
+                                return Err(LoadError {
+                                    line: line_num,
+                                    info: format!("Dangling {}", word_wo_newlines),
+                                })
+                            }
                         }
-
-                        downscope = false;
-                        upscope = false;
-                        defining_var = false;
-                        continue;
+                        current_command = String::new();
                     }
-                    _ => {}
-                }
-                if downscope {
-                    current_scope.append_value(word);
-                } else if defining_var {
-                    current_var.append_value(word);
+                    _ => {
+                        if DefinitionsParser::is_a_command(&word_wo_newlines) {
+                            if !current_command.is_empty() {
+                                return Err(LoadError {
+                                    line: line_num,
+                                    info: format!("{} missing an $end", current_command),
+                                });
+                            }
+                            current_command = word_wo_newlines;
+                        } else {
+                            match current_command.as_str() {
+                                "$scope" => {
+                                    current_scope.append_value(word);
+                                }
+                                "$var" => {
+                                    current_var.append_value(word);
+                                }
+                                _ => {
+                                    return Err(LoadError {
+                                        line: line_num,
+                                        info: format!(
+                                            "Invalid parameter `{}` for command {}",
+                                            word, current_command
+                                        ),
+                                    })
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }
+
+        if !current_command.is_empty() {
+            return Err(LoadError {
+                line: 0,
+                info: format!("{} missing an $end", current_command),
+            });
+        }
+
         Ok(variable_list)
     }
 }
@@ -253,16 +279,109 @@ $var wire 8 # data $end"#,
     }
 
     #[test]
-    #[ignore]
-    fn var_missing_end_same_line_throws_error() {} // TODO
+    #[should_panic(expected = "Dangling $end")]
+    fn end_without_matching_command_throws_error() {
+        let lines = String::from(r#"$end"#);
+        let _ = DefinitionsParser::new().lines(&lines).parse().unwrap();
+    }
 
     #[test]
-    #[ignore]
-    fn var_missing_end_different_line_throws_error() {} // TODO
+    #[should_panic(expected = "$var missing an $end")]
+    fn var_missing_end_same_line_throws_error() {
+        let lines = String::from(
+            r#"$scope module name $end
+$var event 2 e my_var"#,
+        );
+        let _ = DefinitionsParser::new().lines(&lines).parse().unwrap();
+    }
+
+    #[test]
+    #[should_panic(expected = "$var missing an $end")]
+    fn var_missing_end_different_line_throws_error() {
+        let lines = String::from(
+            r#"$scope module name $end
+$var 
+event 
+2 
+e 
+my_var"#,
+        );
+        let _ = DefinitionsParser::new().lines(&lines).parse().unwrap();
+    }
+
+    #[test]
+    #[should_panic(expected = "$var missing an $end")]
+    fn var_missing_end_middle_of_file_throws_error() {
+        let lines = String::from(
+            r#"$scope module name $end
+$var event 2 e my_var
+$upscope $end"#,
+        );
+        let _ = DefinitionsParser::new().lines(&lines).parse().unwrap();
+    }
+
+    #[test]
+    #[should_panic(expected = "$scope missing an $end")]
+    fn scope_missing_end_same_line_throws_error() {
+        let lines = String::from(r#"$scope module name"#);
+        let _ = DefinitionsParser::new().lines(&lines).parse().unwrap();
+    }
+
+    #[test]
+    #[should_panic(expected = "$scope missing an $end")]
+    fn scope_missing_end_different_line_throws_error() {
+        let lines = String::from(
+            r#"$scope 
+module 
+name"#,
+        );
+        let _ = DefinitionsParser::new().lines(&lines).parse().unwrap();
+    }
+
+    #[test]
+    #[should_panic(expected = "$scope missing an $end")]
+    fn scope_missing_end_middle_of_file_throws_error() {
+        let lines = String::from(
+            r#"$scope 
+module 
+name"
+$var integer 8 a my_var $end"#,
+        );
+        let _ = DefinitionsParser::new().lines(&lines).parse().unwrap();
+    }
+
+    #[test]
+    #[should_panic(expected = "$upscope missing an $end")]
+    fn upscope_missing_end_same_line_throws_error() {
+        let lines = String::from(r#"$upscope"#);
+        let _ = DefinitionsParser::new().lines(&lines).parse().unwrap();
+    }
+
+    #[test]
+    #[should_panic(expected = "$upscope missing an $end")]
+    fn upscope_missing_end_middle_of_file_throws_error() {
+        let lines = String::from(
+            r#"$scope module name $end
+$upscope
+$scope module other_name $end"#,
+        );
+        let _ = DefinitionsParser::new().lines(&lines).parse().unwrap();
+    }
+
+    #[test]
+    #[should_panic(expected = "Invalid parameter `parameter` for command $upscope")]
+    fn upscope_with_parameters_throws_error() {
+        let lines = String::from(r#"$upscope parameter $end"#);
+        let _ = DefinitionsParser::new().lines(&lines).parse().unwrap();
+    }
 
     #[test]
     #[ignore]
     fn var_missing_var_type_throws_error() {} // TODO
+
+    #[test]
+    #[ignore]
+    fn var_invalid_var_type_throws_error() {} // TODO
 
     #[test]
     #[ignore]
