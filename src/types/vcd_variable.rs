@@ -1,3 +1,4 @@
+use crate::error::LoadError;
 use std::str::FromStr;
 use strum_macros::EnumString;
 
@@ -125,7 +126,7 @@ impl VCDVariable {
         }
     }
 
-    pub fn append_value(&mut self, word: &str) {
+    pub fn append_value(&mut self, word: &str) -> Result<(), LoadError> {
         match self.num_vars_seen {
             0 => {
                 self.data_type = VCDDataType::from_str(word).unwrap();
@@ -139,9 +140,20 @@ impl VCDVariable {
             3 => {
                 self.name = word.to_string();
             }
-            _ => {} // TODO: Throw error
+            _ => {
+                return Err(LoadError {
+                    line: 0, // TODO
+                    info: "$var has too many parameters".to_string(),
+                });
+            }
         }
         self.num_vars_seen += 1;
+        Ok(())
+    }
+
+    pub fn is_done(&self) -> bool {
+        let exp_num_vars_seen = 4;
+        self.num_vars_seen >= exp_num_vars_seen
     }
 }
 

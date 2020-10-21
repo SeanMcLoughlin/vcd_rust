@@ -13,10 +13,6 @@ impl VCDParser for DefinitionsParser {
         let mut current_scope = VCDScope::new();
         let mut scope_stack = Vec::<VCDScope>::new();
 
-        let mut defining_var = false;
-        let mut upscope = false;
-        let mut upscope = false;
-
         let mut variable_list = Vec::<VCDVariable>::new();
 
         for (line_num, line) in self.lines.lines().enumerate() {
@@ -30,9 +26,22 @@ impl VCDParser for DefinitionsParser {
                                 current_scope = VCDScope::new();
                             }
                             "$upscope" => {
+                                DefinitionsParser::check_scope_stack(
+                                    &current_command,
+                                    &scope_stack,
+                                    line_num,
+                                )?;
                                 scope_stack.pop();
                             }
                             "$var" => {
+                                DefinitionsParser::check_scope_stack(
+                                    &current_command,
+                                    &scope_stack,
+                                    line_num,
+                                )?;
+
+                                DefinitionsParser::check_if_var_is_done(&current_var, line_num)?;
+
                                 current_var.scope = scope_stack.clone();
                                 variable_list.push(current_var);
                                 current_var = VCDVariable::new();
@@ -61,7 +70,7 @@ impl VCDParser for DefinitionsParser {
                                     current_scope.append_value(word);
                                 }
                                 "$var" => {
-                                    current_var.append_value(word);
+                                    current_var.append_value(word)?;
                                 }
                                 _ => {
                                     return Err(LoadError {
@@ -100,6 +109,30 @@ impl DefinitionsParser {
     pub fn lines(&mut self, lines: &String) -> &mut DefinitionsParser {
         self.lines = lines.clone(); // NICE TO HAVE: Remove clone()?
         self
+    }
+
+    pub fn check_scope_stack(
+        command: &String,
+        scope_stack: &Vec<VCDScope>,
+        line_num: usize,
+    ) -> Result<(), LoadError> {
+        match scope_stack.is_empty() {
+            true => Err(LoadError {
+                line: line_num,
+                info: format!("{} declared with empty scope", command),
+            }),
+            false => Ok(()),
+        }
+    }
+
+    pub fn check_if_var_is_done(var: &VCDVariable, line_num: usize) -> Result<(), LoadError> {
+        match var.is_done() {
+            true => Ok(()),
+            false => Err(LoadError {
+                line: line_num,
+                info: "$var has too few parameters".to_string(),
+            }),
+        }
     }
 }
 
@@ -369,37 +402,43 @@ $scope module other_name $end"#,
     }
 
     #[test]
-    #[should_panic(expected = "Invalid parameter `parameter` for command $upscope")]
-    fn upscope_with_parameters_throws_error() {
-        let lines = String::from(r#"$upscope parameter $end"#);
+    #[should_panic(expected = "$var has too few parameters")]
+    fn var_with_too_few_params_throws_error() {
+        let lines = String::from(
+            r#"$scope module lvl_1 $end
+$var wire 8 # $end"#,
+        );
         let _ = DefinitionsParser::new().lines(&lines).parse().unwrap();
     }
 
     #[test]
-    #[ignore]
-    fn var_missing_var_type_throws_error() {} // TODO
+    #[should_panic(expected = "$var declared with empty scope")]
+    fn var_declared_with_empty_hierarchy_throws_error() {
+        let lines = String::from(r#"$var wire 8 # data $end"#);
+        let _ = DefinitionsParser::new().lines(&lines).parse().unwrap();
+    }
 
     #[test]
-    #[ignore]
-    fn var_invalid_var_type_throws_error() {} // TODO
+    #[should_panic(expected = "$var has too many parameters")]
+    fn var_with_too_many_parameters_throws_error() {
+        let lines = String::from(
+            r#"$scope module lvl_1 $end
+$var wire 8 # data BAD_PARAM $end"#,
+        );
+        let _ = DefinitionsParser::new().lines(&lines).parse().unwrap();
+    }
 
     #[test]
-    #[ignore]
-    fn var_missing_size_throws_error() {} // TODO
+    #[should_panic(expected = "$upscope declared with empty scope")]
+    fn upscope_with_empty_hierarchy_throws_error() {
+        let lines = String::from(r#"$upscope $end"#);
+        let _ = DefinitionsParser::new().lines(&lines).parse().unwrap();
+    }
 
     #[test]
-    #[ignore]
-    fn var_missing_identifier_throws_error() {} // TODO
-
-    #[test]
-    #[ignore]
-    fn var_missing_reference_throws_error() {} // TODO
-
-    #[test]
-    #[ignore]
-    fn var_declared_with_no_scope_throws_error() {} // TODO
-
-    #[test]
-    #[ignore]
-    fn upscope_with_empty_hierarchy_throws_error() {} // TODO
+    #[should_panic(expected = "Invalid parameter `parameter` for command $upscope")]
+    fn upscope_with_too_many_parameters_throws_error() {
+        let lines = String::from(r#"$upscope parameter $end"#);
+        let _ = DefinitionsParser::new().lines(&lines).parse().unwrap();
+    }
 }
