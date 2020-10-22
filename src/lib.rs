@@ -1,21 +1,33 @@
 #[macro_use]
 extern crate derive_builder;
 extern crate strum;
-#[allow(unused_imports)]
 #[macro_use]
 extern crate strum_macros;
-
 pub mod error;
 pub mod parser;
+pub mod state_machine;
+pub mod string_helpers;
 pub mod types;
 pub mod vcd;
 
-pub use crate::vcd::VCDLoader;
+use crate::error::LoadErrorEnum;
+use crate::parser::Parser;
+use crate::vcd::VCD;
+use std::fs::File;
 
-#[cfg(test)]
-mod tests {
-    #[test]
-    fn it_works() {
-        assert_eq!(2 + 2, 4);
-    }
+pub fn load_from_str(s: &str) -> Result<VCD, LoadErrorEnum> {
+    let mut parser = Parser::new();
+    let vcd = parser.parse_from_string(s)?;
+    Ok(vcd)
+}
+
+pub fn load_from_file(filename: String) -> Result<VCD, LoadErrorEnum> {
+    let mut parser = Parser::new();
+    return match File::open(&filename[..]) {
+        Ok(file) => Ok(parser.parse_from_file(file))?,
+        Err(error) => Err(LoadErrorEnum::FileOpenError {
+            filename,
+            error: error.to_string(),
+        }),
+    };
 }

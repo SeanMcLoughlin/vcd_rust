@@ -10,4 +10,4 @@ $end
 $comment
    Here's another comment for good measure
 $end
-$timescale 1ps $end
+$timescale 1 ps $end

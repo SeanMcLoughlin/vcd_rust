@@ -10,7 +10,7 @@ fn get_test_file_path(filename: &str) -> String {
 #[test]
 fn parse_vcd_file() {
     let test_file = get_test_file_path("no_vardump.golden.vcd");
-    let vcd = vcd_rust::vcd::VCDLoader::load_from_file(test_file).unwrap();
+    let vcd = vcd_rust::load_from_file(test_file).unwrap();
 
     assert_eq!(vcd.date, "August 9th, 2020");
     assert_eq!(vcd.version, "Version 4.20");
@@ -23,9 +23,6 @@ fn parse_vcd_file() {
     );
     assert_eq!(
         vcd.timescale,
-        vcd_rust::types::timescale::TimeScale {
-            value: 1,
-            unit: vcd_rust::types::timescale::TimeUnit::PS
-        }
+        vcd_rust::types::timescale::TimeScale::init(1, vcd_rust::types::timescale::TimeUnit::PS)
     )
 }

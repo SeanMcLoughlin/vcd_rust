@@ -1,2 +1,3 @@
+pub mod scope;
 pub mod timescale;
-pub mod vcd_variable;
+pub mod variable;

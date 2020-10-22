@@ -1,25 +1,47 @@
-pub mod marker;
-use std::error::Error;
-use std::fmt;
+use thiserror::Error;
 
-#[derive(Clone, PartialEq, Debug, Eq)]
-pub struct LoadError {
-    pub line: usize,
-    pub info: String,
-}
+#[derive(Clone, PartialEq, Debug, Eq, Error)]
+pub enum LoadErrorEnum {
+    #[error("Error opening file {}: {}", filename, error)]
+    FileOpenError { filename: String, error: String },
 
-impl Error for LoadError {
-    fn description(&self) -> &str {
-        self.info.as_ref()
-    }
+    #[error("line {}: {} missing an $end", line, command)]
+    MissingEnd { command: String, line: usize },
 
-    fn cause(&self) -> Option<&dyn Error> {
-        None
-    }
-}
+    #[error("line {}: More than one {} command is invalid", line, command)]
+    InvalidMultipleCommand { command: String, line: usize },
 
-impl fmt::Display for LoadError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{} at line {}", self.info, self.line)
-    }
+    #[error("line {}: Dangling $end", line)]
+    DanglingEnd { line: usize },
+
+    #[error(
+        "line {}: Invalid parameter {} for command {}",
+        line,
+        parameter,
+        command
+    )]
+    InvalidParameterForCommand {
+        line: usize,
+        parameter: String,
+        command: String,
+    },
+
+    #[error("line {}: {} has too few parameters", line, command)]
+    TooFewParameters { line: usize, command: String },
+
+    #[error("line {}: {} has too many parameters", line, command)]
+    TooManyParameters { line: usize, command: String },
+
+    #[error("line {}: {} declared with empty scope", line, command)]
+    ScopeStackEmpty { line: usize, command: String },
+
+    #[error("line {}: Found time value {}, expected integer", line, value)]
+    InvalidTimeValue { line: usize, value: String },
+
+    #[error(
+        "line {}: Found timescale {}, expected one of: [ ms us ns ps ]",
+        line,
+        time_scale
+    )]
+    InvalidTimeScale { line: usize, time_scale: String },
 }
