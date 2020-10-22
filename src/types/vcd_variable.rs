@@ -172,10 +172,10 @@ mod tests {
             .unwrap();
 
         let mut act_var = VCDVariable::new();
-        act_var.append_value("wire");
-        act_var.append_value("8");
-        act_var.append_value("#");
-        act_var.append_value("data");
+        act_var.append_value("wire").unwrap();
+        act_var.append_value("8").unwrap();
+        act_var.append_value("#").unwrap();
+        act_var.append_value("data").unwrap();
 
         assert_eq!(exp_var.data_type, act_var.data_type);
         assert_eq!(exp_var.bit_width, act_var.bit_width);

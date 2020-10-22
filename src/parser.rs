@@ -55,6 +55,7 @@ fn get_comments_from_lines(lines: &String) -> Result<Vec<String>, LoadError> {
         .parse()
 }
 
+#[allow(unused_variables)]
 fn get_variables_from_lines(lines: &String) -> Result<Vec<VCDVariable>, LoadError> {
     Ok(vec![])
 }
