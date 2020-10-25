@@ -1,4 +1,4 @@
-use crate::error::LoadErrorEnum;
+use crate::error::LoadError;
 use std::str::FromStr;
 
 #[derive(Debug, Clone, Eq, PartialEq, EnumString)]
@@ -23,12 +23,12 @@ enum BuildState {
 }
 
 impl BuildState {
-    fn next(&self, line_num: usize) -> Result<Self, LoadErrorEnum> {
+    fn next(&self, line_num: usize) -> Result<Self, LoadError> {
         use BuildState::*;
         match *self {
             ScopeType => Ok(Identifier),
             Identifier => Ok(Done),
-            Done => Err(LoadErrorEnum::TooManyParameters {
+            Done => Err(LoadError::TooManyParameters {
                 line: line_num,
                 command: "$scope".to_string(),
             }),
@@ -66,7 +66,7 @@ impl Scope {
         }
     }
 
-    pub fn append(&mut self, word: &str, line_num: usize) -> Result<(), LoadErrorEnum> {
+    pub fn append(&mut self, word: &str, line_num: usize) -> Result<(), LoadError> {
         match self.state {
             BuildState::ScopeType => self.write_scope_type(word, line_num)?,
             BuildState::Identifier => self.write_identifier(word.to_string())?,
@@ -76,11 +76,11 @@ impl Scope {
         Ok(())
     }
 
-    fn write_scope_type(&mut self, word: &str, line_num: usize) -> Result<(), LoadErrorEnum> {
+    fn write_scope_type(&mut self, word: &str, line_num: usize) -> Result<(), LoadError> {
         self.scope_type = match ScopeType::from_str(word) {
             Ok(scope_type) => scope_type,
             Err(_) => {
-                return Err(LoadErrorEnum::InvalidParameterForCommand {
+                return Err(LoadError::InvalidParameterForCommand {
                     line: line_num,
                     command: "$scope".to_string(),
                     parameter: word.to_string(),
@@ -90,7 +90,7 @@ impl Scope {
         Ok(())
     }
 
-    fn write_identifier(&mut self, word: String) -> Result<(), LoadErrorEnum> {
+    fn write_identifier(&mut self, word: String) -> Result<(), LoadError> {
         self.identifier = word;
         Ok(())
     }
@@ -122,7 +122,7 @@ mod tests {
     fn invalid_scope_type_throws_error() {
         let mut scope = Scope::new();
         let err = scope.append("NotAScopeType", 0).err();
-        let exp_err = LoadErrorEnum::InvalidParameterForCommand {
+        let exp_err = LoadError::InvalidParameterForCommand {
             line: 0,
             command: "$scope".to_string(),
             parameter: "NotAScopeType".to_string(),
@@ -136,7 +136,7 @@ mod tests {
         scope.append("task", 0).unwrap();
         scope.append("my_task", 0).unwrap();
         let err = scope.append("my_task", 0).err();
-        let exp_err = LoadErrorEnum::TooManyParameters {
+        let exp_err = LoadError::TooManyParameters {
             line: 0,
             command: "$scope".to_string(),
         };

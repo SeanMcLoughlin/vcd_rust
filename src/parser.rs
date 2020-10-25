@@ -1,4 +1,4 @@
-use crate::error::LoadErrorEnum;
+use crate::error::LoadError;
 use crate::state_machine::StateMachine;
 use crate::vcd::VCD;
 use std::fs::File;
@@ -15,7 +15,7 @@ impl Parser {
         }
     }
 
-    pub fn parse_from_string(&mut self, s: &str) -> Result<VCD, LoadErrorEnum> {
+    pub fn parse_from_string(&mut self, s: &str) -> Result<VCD, LoadError> {
         let mut line_num = 1;
         for line in s.lines() {
             self.parse(line.to_string(), line_num)?;
@@ -26,7 +26,7 @@ impl Parser {
         Ok(self.state_machine.vcd.clone()) // TODO: Refactor to use take() to prevent clone
     }
 
-    pub fn parse_from_file(&mut self, file: File) -> Result<VCD, LoadErrorEnum> {
+    pub fn parse_from_file(&mut self, file: File) -> Result<VCD, LoadError> {
         let mut line_num = 1;
         for line in BufReader::new(file).lines() {
             match line {
@@ -40,7 +40,7 @@ impl Parser {
         Ok(self.state_machine.vcd.clone()) // TODO: Refactor to use take() to prevent clone
     }
 
-    fn parse(&mut self, line: String, line_num: usize) -> Result<(), LoadErrorEnum> {
+    fn parse(&mut self, line: String, line_num: usize) -> Result<(), LoadError> {
         let words: Vec<_> = line.split(" ").filter(|c| !c.is_empty()).collect();
         for word in words {
             self.state_machine.parse_word(word, line_num)?
@@ -78,7 +78,7 @@ mod tests {
     #[test]
     fn end_without_matching_command_throws_error() {
         let lines = r#"$end"#;
-        let exp_err = LoadErrorEnum::DanglingEnd { line: 1 };
+        let exp_err = LoadError::DanglingEnd { line: 1 };
         assert_eq!(Parser::new().parse_from_string(lines).err(), Some(exp_err));
     }
 
@@ -103,7 +103,7 @@ $end"#;
         let contents = r#"$date
 Date text"#;
         let err = Parser::new().parse_from_string(contents).err();
-        let exp_err = LoadErrorEnum::MissingEnd {
+        let exp_err = LoadError::MissingEnd {
             line: 2,
             command: "date".to_string(),
         };
@@ -118,7 +118,7 @@ $version
     The version is 1.0
 $end"#;
         let err = Parser::new().parse_from_string(contents).err();
-        let exp_err = LoadErrorEnum::MissingEnd {
+        let exp_err = LoadError::MissingEnd {
             line: 3,
             command: "date".to_string(),
         };
@@ -148,7 +148,7 @@ $end"#;
         let contents = r#"$version
             This version has no end"#;
         let err = Parser::new().parse_from_string(contents).err();
-        let exp_err = LoadErrorEnum::MissingEnd {
+        let exp_err = LoadError::MissingEnd {
             line: 2,
             command: "version".to_string(),
         };
@@ -164,7 +164,7 @@ $version
     Version 2.0. Which version is the right version?
 $end"#;
         let err = Parser::new().parse_from_string(contents).err();
-        let exp_err = LoadErrorEnum::InvalidMultipleCommand {
+        let exp_err = LoadError::InvalidMultipleCommand {
             line: 4,
             command: "version".to_string(),
         };
@@ -180,7 +180,7 @@ $date
     August 9th, 2020. Which is the correct date?
 $end"#;
         let err = Parser::new().parse_from_string(contents).err();
-        let exp_err = LoadErrorEnum::InvalidMultipleCommand {
+        let exp_err = LoadError::InvalidMultipleCommand {
             line: 4,
             command: "date".to_string(),
         };
@@ -217,7 +217,7 @@ $end"#;
     fn comment_command_with_no_end_throws_load_error() {
         let contents = "$comment This comment is missing an end";
         let err = Parser::new().parse_from_string(contents).err();
-        let exp_err = LoadErrorEnum::MissingEnd {
+        let exp_err = LoadError::MissingEnd {
             line: 1,
             command: "comment".to_string(),
         };
@@ -371,7 +371,7 @@ $var wire 8 # data $end"#;
         let lines = r#"$scope module name $end
 $var event 2 e my_var"#;
 
-        let exp_err = LoadErrorEnum::MissingEnd {
+        let exp_err = LoadError::MissingEnd {
             command: "var".to_string(),
             line: 2,
         };
@@ -388,7 +388,7 @@ event
 e
 my_var"#;
 
-        let exp_err = LoadErrorEnum::MissingEnd {
+        let exp_err = LoadError::MissingEnd {
             command: "var".to_string(),
             line: 6,
         };
@@ -401,7 +401,7 @@ my_var"#;
 $var event 2 e my_var
 $upscope $end"#;
 
-        let exp_err = LoadErrorEnum::MissingEnd {
+        let exp_err = LoadError::MissingEnd {
             command: "var".to_string(),
             line: 3,
         };
@@ -412,7 +412,7 @@ $upscope $end"#;
     #[test]
     fn scope_missing_end_same_line_throws_error() {
         let lines = r#"$scope module name"#;
-        let exp_err = LoadErrorEnum::MissingEnd {
+        let exp_err = LoadError::MissingEnd {
             command: "scope".to_string(),
             line: 1,
         };
@@ -424,7 +424,7 @@ $upscope $end"#;
         let lines = r#"$scope
 module
 name"#;
-        let exp_err = LoadErrorEnum::MissingEnd {
+        let exp_err = LoadError::MissingEnd {
             command: "scope".to_string(),
             line: 3,
         };
@@ -437,7 +437,7 @@ name"#;
 module
 name
 $var integer 8 a my_var $end"#;
-        let exp_err = LoadErrorEnum::MissingEnd {
+        let exp_err = LoadError::MissingEnd {
             command: "scope".to_string(),
             line: 4,
         };
@@ -447,7 +447,7 @@ $var integer 8 a my_var $end"#;
     #[test]
     fn upscope_missing_end_same_line_throws_error() {
         let lines = r#"$upscope"#;
-        let exp_err = LoadErrorEnum::MissingEnd {
+        let exp_err = LoadError::MissingEnd {
             command: "upscope".to_string(),
             line: 1,
         };
@@ -459,7 +459,7 @@ $var integer 8 a my_var $end"#;
         let lines = r#"$scope module name $end
 $upscope
 $scope module other_name $end"#;
-        let exp_err = LoadErrorEnum::MissingEnd {
+        let exp_err = LoadError::MissingEnd {
             command: "upscope".to_string(),
             line: 3,
         };
@@ -470,7 +470,7 @@ $scope module other_name $end"#;
     fn var_with_too_few_params_throws_error() {
         let lines = r#"$scope module lvl_1 $end
 $var wire 8 # $end"#;
-        let exp_err = LoadErrorEnum::TooFewParameters {
+        let exp_err = LoadError::TooFewParameters {
             command: "var".to_string(),
             line: 2,
         };
@@ -480,7 +480,7 @@ $var wire 8 # $end"#;
     #[test]
     fn var_declared_with_empty_hierarchy_throws_error() {
         let lines = r#"$var wire 8 # data $end"#;
-        let exp_err = LoadErrorEnum::ScopeStackEmpty {
+        let exp_err = LoadError::ScopeStackEmpty {
             command: "var".to_string(),
             line: 1,
         };
@@ -491,7 +491,7 @@ $var wire 8 # $end"#;
     fn var_with_too_many_parameters_throws_error() {
         let lines = r#"$scope module lvl_1 $end
 $var wire 8 # data BAD_PARAM $end"#;
-        let exp_err = LoadErrorEnum::TooManyParameters {
+        let exp_err = LoadError::TooManyParameters {
             command: "var".to_string(),
             line: 2,
         };
@@ -501,7 +501,7 @@ $var wire 8 # data BAD_PARAM $end"#;
     #[test]
     fn upscope_with_empty_hierarchy_throws_error() {
         let lines = r#"$upscope $end"#;
-        let exp_err = LoadErrorEnum::ScopeStackEmpty {
+        let exp_err = LoadError::ScopeStackEmpty {
             line: 1,
             command: "upscope".to_string(),
         };
@@ -511,7 +511,7 @@ $var wire 8 # data BAD_PARAM $end"#;
     #[test]
     fn upscope_with_too_many_parameters_throws_error() {
         let lines = r#"$upscope parameter $end"#;
-        let exp_err = LoadErrorEnum::InvalidParameterForCommand {
+        let exp_err = LoadError::InvalidParameterForCommand {
             parameter: "parameter".to_string(),
             command: "upscope".to_string(),
             line: 1,

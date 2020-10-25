@@ -1,4 +1,4 @@
-use crate::error::LoadErrorEnum;
+use crate::error::LoadError;
 use crate::string_helpers::append_word;
 use crate::types::{scope::Scope, variable::Variable};
 use crate::vcd::VCD;
@@ -73,7 +73,7 @@ impl StateMachine {
         return map;
     }
 
-    pub fn parse_word(&mut self, word: &str, line_num: usize) -> Result<(), LoadErrorEnum> {
+    pub fn parse_word(&mut self, word: &str, line_num: usize) -> Result<(), LoadError> {
         if StateMachine::is_cmd(&word) {
             self.try_transition(word, line_num)?;
         } else {
@@ -82,7 +82,7 @@ impl StateMachine {
         Ok(())
     }
 
-    fn try_transition(&mut self, cmd: &str, line_num: usize) -> Result<(), LoadErrorEnum> {
+    fn try_transition(&mut self, cmd: &str, line_num: usize) -> Result<(), LoadError> {
         let cmd_wo_dollar = &cmd[1..];
         let next_state = ParserState::from_str(cmd_wo_dollar).unwrap();
         self.state = match self.state {
@@ -115,9 +115,9 @@ impl StateMachine {
         &mut self,
         line_num: usize,
         state: ParserState,
-    ) -> Result<(), LoadErrorEnum> {
+    ) -> Result<(), LoadError> {
         return match state {
-            ParserState::End => Err(LoadErrorEnum::DanglingEnd { line: line_num }),
+            ParserState::End => Err(LoadError::DanglingEnd { line: line_num }),
             _ => Ok(()),
         };
     }
@@ -126,10 +126,10 @@ impl StateMachine {
         &mut self,
         line_num: usize,
         state: ParserState,
-    ) -> Result<(), LoadErrorEnum> {
+    ) -> Result<(), LoadError> {
         return match state {
             ParserState::End => Ok(()),
-            _ => Err(LoadErrorEnum::MissingEnd {
+            _ => Err(LoadError::MissingEnd {
                 line: line_num,
                 command: self.state.to_string(),
             }),
@@ -140,11 +140,11 @@ impl StateMachine {
         &mut self,
         line_num: usize,
         state: ParserState,
-    ) -> Result<(), LoadErrorEnum> {
+    ) -> Result<(), LoadError> {
         if let Some(seen) = self.singular_commands_seen.get(&state) {
             match seen {
                 true => {
-                    return Err(LoadErrorEnum::InvalidMultipleCommand {
+                    return Err(LoadError::InvalidMultipleCommand {
                         line: line_num,
                         command: state.to_string(),
                     })
@@ -155,11 +155,11 @@ impl StateMachine {
         Ok(())
     }
 
-    pub fn cleanup(&self, line_num: usize) -> Result<(), LoadErrorEnum> {
+    pub fn cleanup(&self, line_num: usize) -> Result<(), LoadError> {
         match self.state {
             ParserState::End | ParserState::DumpVars => {}
             _ => {
-                return Err(LoadErrorEnum::MissingEnd {
+                return Err(LoadError::MissingEnd {
                     line: line_num,
                     command: self.state.to_string(),
                 })
@@ -168,7 +168,7 @@ impl StateMachine {
         Ok(())
     }
 
-    fn append_variable(&mut self, line_num: usize) -> Result<(), LoadErrorEnum> {
+    fn append_variable(&mut self, line_num: usize) -> Result<(), LoadError> {
         self.check_if_var_is_done(line_num)?;
         self.vcd
             .variables
@@ -177,10 +177,10 @@ impl StateMachine {
         Ok(())
     }
 
-    fn check_if_var_is_done(&mut self, line_num: usize) -> Result<(), LoadErrorEnum> {
+    fn check_if_var_is_done(&mut self, line_num: usize) -> Result<(), LoadError> {
         return match self.var.is_done() {
             true => Ok(()),
-            false => Err(LoadErrorEnum::TooFewParameters {
+            false => Err(LoadError::TooFewParameters {
                 line: line_num,
                 command: "var".to_string(),
             }),
@@ -191,7 +191,7 @@ impl StateMachine {
         &mut self,
         line_num: usize,
         state: ParserState,
-    ) -> Result<(), LoadErrorEnum> {
+    ) -> Result<(), LoadError> {
         self.check_if_scope_stack_is_empty(line_num, state)?;
         self.var.scope = self.scope_stack.clone();
         Ok(())
@@ -207,7 +207,7 @@ impl StateMachine {
         self.scope = Scope::new();
     }
 
-    fn pop_from_scope_stack(&mut self, line_num: usize) -> Result<(), LoadErrorEnum> {
+    fn pop_from_scope_stack(&mut self, line_num: usize) -> Result<(), LoadError> {
         self.check_if_scope_stack_is_empty(line_num, self.state)?;
         self.scope_stack.pop();
         Ok(())
@@ -217,9 +217,9 @@ impl StateMachine {
         &mut self,
         line_num: usize,
         state: ParserState,
-    ) -> Result<(), LoadErrorEnum> {
+    ) -> Result<(), LoadError> {
         return match self.scope_stack.is_empty() {
-            true => Err(LoadErrorEnum::ScopeStackEmpty {
+            true => Err(LoadError::ScopeStackEmpty {
                 line: line_num,
                 command: state.to_string(),
             }),
@@ -227,7 +227,7 @@ impl StateMachine {
         };
     }
 
-    fn do_work(&mut self, word: &str, line_num: usize) -> Result<(), LoadErrorEnum> {
+    fn do_work(&mut self, word: &str, line_num: usize) -> Result<(), LoadError> {
         use ParserState::*;
         match self.state {
             Comment => append_word(&mut self.comment, word),
@@ -252,8 +252,8 @@ impl StateMachine {
         command: String,
         line_num: usize,
         parameter: &str,
-    ) -> Result<(), LoadErrorEnum> {
-        Err(LoadErrorEnum::InvalidParameterForCommand {
+    ) -> Result<(), LoadError> {
+        Err(LoadError::InvalidParameterForCommand {
             line: line_num,
             command,
             parameter: parameter.to_string(),

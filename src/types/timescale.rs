@@ -1,4 +1,4 @@
-use crate::error::LoadErrorEnum;
+use crate::error::LoadError;
 use std::str::FromStr;
 use strum_macros::EnumIter;
 
@@ -22,12 +22,12 @@ enum BuildState {
 }
 
 impl BuildState {
-    fn next(&self, line_num: usize) -> Result<Self, LoadErrorEnum> {
+    fn next(&self, line_num: usize) -> Result<Self, LoadError> {
         use BuildState::*;
         match *self {
             Value => Ok(Unit),
             Unit => Ok(Done),
-            Done => Err(LoadErrorEnum::TooManyParameters {
+            Done => Err(LoadError::TooManyParameters {
                 line: line_num,
                 command: "$timescale".to_string(),
             }),
@@ -65,7 +65,7 @@ impl TimeScale {
         }
     }
 
-    pub fn append(&mut self, word: &str, line_num: usize) -> Result<(), LoadErrorEnum> {
+    pub fn append(&mut self, word: &str, line_num: usize) -> Result<(), LoadError> {
         match self.state {
             BuildState::Value => self.write_value(word, line_num)?,
             BuildState::Unit => self.write_unit(word, line_num)?,
@@ -75,11 +75,11 @@ impl TimeScale {
         Ok(())
     }
 
-    fn write_unit(&mut self, word: &str, line_num: usize) -> Result<(), LoadErrorEnum> {
+    fn write_unit(&mut self, word: &str, line_num: usize) -> Result<(), LoadError> {
         self.unit = match TimeUnit::from_str(word) {
             Ok(time_scale) => time_scale,
             Err(_) => {
-                return Err(LoadErrorEnum::InvalidTimeScale {
+                return Err(LoadError::InvalidTimeScale {
                     line: line_num,
                     time_scale: word.to_string(),
                 });
@@ -88,11 +88,11 @@ impl TimeScale {
         Ok(())
     }
 
-    fn write_value(&mut self, word: &str, line_num: usize) -> Result<(), LoadErrorEnum> {
+    fn write_value(&mut self, word: &str, line_num: usize) -> Result<(), LoadError> {
         self.value = match word.parse::<usize>() {
             Ok(value) => value,
             Err(_) => {
-                return Err(LoadErrorEnum::InvalidTimeValue {
+                return Err(LoadError::InvalidTimeValue {
                     line: line_num,
                     value: word.to_string(),
                 });
@@ -128,7 +128,7 @@ mod tests {
     fn invalid_number_throws_error() {
         let mut time_scale = TimeScale::new();
         let err = time_scale.append("NaN", 0).err();
-        let exp_err = LoadErrorEnum::InvalidTimeValue {
+        let exp_err = LoadError::InvalidTimeValue {
             line: 0,
             value: "NaN".to_string(),
         };
@@ -140,7 +140,7 @@ mod tests {
         let mut time_scale = TimeScale::new();
         time_scale.append("10", 0).unwrap();
         let err = time_scale.append("NotATimeScale", 0).err();
-        let exp_err = LoadErrorEnum::InvalidTimeScale {
+        let exp_err = LoadError::InvalidTimeScale {
             line: 0,
             time_scale: "NotATimeScale".to_string(),
         };
@@ -153,7 +153,7 @@ mod tests {
         time_scale.append("10", 0).unwrap();
         time_scale.append("us", 0).unwrap();
         let err = time_scale.append("ExtraParameter", 0).err();
-        let exp_err = LoadErrorEnum::TooManyParameters {
+        let exp_err = LoadError::TooManyParameters {
             line: 0,
             command: "$timescale".to_string(),
         };

@@ -1,4 +1,4 @@
-use crate::error::LoadErrorEnum;
+use crate::error::LoadError;
 use crate::types::scope::Scope;
 use std::str::FromStr;
 use strum_macros::EnumString;
@@ -51,14 +51,14 @@ enum BuildState {
 }
 
 impl BuildState {
-    fn next(&self, line_num: usize) -> Result<Self, LoadErrorEnum> {
+    fn next(&self, line_num: usize) -> Result<Self, LoadError> {
         use BuildState::*;
         match *self {
             VarType => Ok(Size),
             Size => Ok(Identifier),
             Identifier => Ok(Reference),
             Reference => Ok(Done),
-            Done => Err(LoadErrorEnum::TooManyParameters {
+            Done => Err(LoadError::TooManyParameters {
                 line: line_num,
                 command: "var".to_string(),
             }),
@@ -90,7 +90,7 @@ impl Variable {
         }
     }
 
-    pub fn append(&mut self, word: &str, line_num: usize) -> Result<(), LoadErrorEnum> {
+    pub fn append(&mut self, word: &str, line_num: usize) -> Result<(), LoadError> {
         match self.state {
             BuildState::VarType => self.write_var_type(word, line_num)?,
             BuildState::Size => self.write_bit_width(word, line_num)?,
@@ -106,11 +106,11 @@ impl Variable {
         self.state == BuildState::Done
     }
 
-    fn write_var_type(&mut self, word: &str, line_num: usize) -> Result<(), LoadErrorEnum> {
+    fn write_var_type(&mut self, word: &str, line_num: usize) -> Result<(), LoadError> {
         self.var_type = match VarType::from_str(word) {
             Ok(var_type) => var_type,
             Err(_) => {
-                return Err(LoadErrorEnum::InvalidParameterForCommand {
+                return Err(LoadError::InvalidParameterForCommand {
                     line: line_num,
                     command: "$var".to_string(),
                     parameter: word.to_string(),
@@ -120,11 +120,11 @@ impl Variable {
         Ok(())
     }
 
-    fn write_bit_width(&mut self, word: &str, line_num: usize) -> Result<(), LoadErrorEnum> {
+    fn write_bit_width(&mut self, word: &str, line_num: usize) -> Result<(), LoadError> {
         self.bit_width = match word.parse::<usize>() {
             Ok(bit_width) => bit_width,
             Err(_) => {
-                return Err(LoadErrorEnum::InvalidParameterForCommand {
+                return Err(LoadError::InvalidParameterForCommand {
                     line: line_num,
                     command: "$var".to_string(),
                     parameter: word.to_string(),
@@ -190,7 +190,7 @@ mod tests {
     fn invalid_var_type_throws_error() {
         let mut act_var = Variable::new();
         let err = act_var.append("NotAVarType", 0).err();
-        let exp_err = LoadErrorEnum::InvalidParameterForCommand {
+        let exp_err = LoadError::InvalidParameterForCommand {
             line: 0,
             command: "$var".to_string(),
             parameter: "NotAVarType".to_string(),
@@ -203,7 +203,7 @@ mod tests {
         let mut act_var = Variable::new();
         act_var.append("wire", 0).unwrap();
         let err = act_var.append("NotADigit", 0).err();
-        let exp_err = LoadErrorEnum::InvalidParameterForCommand {
+        let exp_err = LoadError::InvalidParameterForCommand {
             line: 0,
             command: "$var".to_string(),
             parameter: "NotADigit".to_string(),
@@ -218,7 +218,7 @@ mod tests {
             act_var.append(word, 0).unwrap();
         }
         let err = act_var.append("ExtraParam", 0).err();
-        let exp_err = LoadErrorEnum::TooManyParameters {
+        let exp_err = LoadError::TooManyParameters {
             line: 0,
             command: "var".to_string(),
         };

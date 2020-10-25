@@ -1,7 +1,7 @@
 use thiserror::Error;
 
 #[derive(Clone, PartialEq, Debug, Eq, Error)]
-pub enum LoadErrorEnum {
+pub enum LoadError {
     #[error("Error opening file {}: {}", filename, error)]
     FileOpenError { filename: String, error: String },
 
