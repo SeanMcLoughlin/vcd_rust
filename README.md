@@ -48,7 +48,7 @@ fn main() {
     assert_eq!(vcd.date, "August 9th, 2020"); // Date
     assert_eq!(vcd.version, "1.0"); // Version
     assert_eq!(vcd.comments, vec!["This is an example"]); // Comments as a vector
-    assert_eq!(vcd.timescale, TimeScale::init(10, TimeUnit::PS)); // Custom type for timescale
+    assert_eq!(vcd.timescale, TimeScale::init(1, TimeUnit::PS)); // Custom type for timescale
     // ...among other data structures
 }
 ```
