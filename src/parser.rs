@@ -555,4 +555,60 @@ $enddefinitions INVALID_PARAMETER $end"#;
         };
         assert_eq!(Parser::new().parse_from_string(lines).err(), Some(exp_err));
     }
+
+    #[test]
+    #[ignore]
+    fn dumpvars_1() {}
+
+    #[test]
+    #[ignore]
+    fn dumpvars_invalid_identifier_throws_error() {}
+
+    #[test]
+    #[ignore]
+    fn dumpvars_bit_width_too_large_throws_error() {}
+
+    #[test]
+    #[ignore]
+    fn dumpvars_missing_end_throws_error() {}
+
+    #[test]
+    #[ignore]
+    fn dumpall_1() {}
+
+    #[test]
+    #[ignore]
+    fn dumpall_missing_end_throws_error() {}
+
+    #[test]
+    #[ignore]
+    fn dumpall_not_including_all_var_declarations_throws_error() {}
+
+    #[test]
+    #[ignore]
+    fn dumpoff_1() {}
+
+    #[test]
+    #[ignore]
+    fn dumpoff_missing_end_throws_error() {}
+
+    #[test]
+    #[ignore]
+    fn dumpoff_not_including_all_var_declarations_throws_error() {}
+
+    #[test]
+    #[ignore]
+    fn dumpoff_not_setting_vars_to_x_throws_error() {}
+
+    #[test]
+    #[ignore]
+    fn dumpon_1() {}
+
+    #[test]
+    #[ignore]
+    fn dumpon_missing_end_throws_error() {}
+
+    #[test]
+    #[ignore]
+    fn dumpon_not_including_all_var_declarations_throws_error() {}
 }
