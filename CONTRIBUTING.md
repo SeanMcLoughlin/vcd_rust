@@ -1,6 +1,6 @@
 # Contributing
 
-Thank you for wanting to contribute to vcd-rust! Please see the below sections for how to contribue.
+Thank you for wanting to contribute to vcd-rust! Please see the below sections for how to contribute.
 
 ## Issues
 ### Feature Requests
