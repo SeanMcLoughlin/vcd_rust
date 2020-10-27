@@ -44,7 +44,13 @@ pub struct TimeScale {
 
 impl PartialEq for TimeScale {
     fn eq(&self, other: &Self) -> bool {
-        return self.value == other.value && self.unit == other.unit;
+        self.value == other.value && self.unit == other.unit
+    }
+}
+
+impl Default for TimeScale {
+    fn default() -> Self {
+        TimeScale::new()
     }
 }
 

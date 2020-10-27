@@ -78,6 +78,12 @@ pub struct Variable {
     state: BuildState,
 }
 
+impl Default for Variable {
+    fn default() -> Self {
+        Variable::new()
+    }
+}
+
 impl Variable {
     pub fn new() -> Variable {
         Variable {
@@ -137,11 +143,11 @@ impl Variable {
 
 impl PartialEq for Variable {
     fn eq(&self, other: &Self) -> bool {
-        return self.scope == other.scope
+        self.scope == other.scope
             && self.var_type == other.var_type
             && self.bit_width == other.bit_width
             && self.ascii_identifier == other.ascii_identifier
-            && self.reference == other.reference;
+            && self.reference == other.reference
     }
 }
 
@@ -160,7 +166,7 @@ mod tests {
             .build()
             .unwrap();
         let mut act_var = Variable::new();
-        for word in vec!["wire", "8", "#", "data"] {
+        for word in &["wire", "8", "#", "data"] {
             act_var.append(word, 0).unwrap();
         }
         assert_eq!(exp_var, act_var);
@@ -179,7 +185,7 @@ mod tests {
             .unwrap();
 
         let mut act_var = Variable::new();
-        for word in vec!["trireg", "4", "e", "my_reference"] {
+        for word in &["trireg", "4", "e", "my_reference"] {
             act_var.append(word, 0).unwrap();
         }
         assert_eq!(exp_var, act_var);
@@ -214,7 +220,7 @@ mod tests {
     #[test]
     fn extra_params_in_var_throws_error() {
         let mut act_var = Variable::new();
-        for word in vec!["wire", "8", "e", "my_reference"] {
+        for word in &["wire", "8", "e", "my_reference"] {
             act_var.append(word, 0).unwrap();
         }
         let err = act_var.append("ExtraParam", 0).err();

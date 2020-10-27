@@ -1,7 +1,7 @@
 use crate::types::{timescale::TimeScale, variable::Variable};
 use std::collections::HashMap;
 
-#[derive(Clone)]
+#[derive(Clone, Default)]
 pub struct VCD {
     pub date: String,
     pub version: String,

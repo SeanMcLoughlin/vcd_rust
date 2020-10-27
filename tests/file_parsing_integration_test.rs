@@ -1,10 +1,9 @@
 use std::path::PathBuf;
-use vcd_rust;
 
 fn get_test_file_path(filename: &str) -> String {
     let mut test_file_buf = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
     test_file_buf.push(format!("tests/{}", filename));
-    return test_file_buf.as_path().display().to_string();
+    test_file_buf.as_path().display().to_string()
 }
 
 #[test]
