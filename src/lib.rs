@@ -23,11 +23,11 @@ pub fn load_from_str(s: &str) -> Result<VCD, LoadError> {
 
 pub fn load_from_file(filename: String) -> Result<VCD, LoadError> {
     let mut parser = Parser::new();
-    return match File::open(&filename[..]) {
+    match File::open(&filename[..]) {
         Ok(file) => Ok(parser.parse_from_file(file))?,
         Err(error) => Err(LoadError::FileOpenError {
             filename,
             error: error.to_string(),
         }),
-    };
+    }
 }

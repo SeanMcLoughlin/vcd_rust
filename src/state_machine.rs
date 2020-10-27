@@ -67,10 +67,10 @@ impl StateMachine {
     fn get_singular_commands_seen() -> HashMap<ParserState, bool> {
         use ParserState::*;
         let mut map: HashMap<ParserState, bool> = HashMap::new();
-        for state in vec![Version, Date, Timescale] {
-            map.insert(state, false);
+        for state in &[Version, Date, Timescale] {
+            map.insert(*state, false);
         }
-        return map;
+        map
     }
 
     pub fn parse_word(&mut self, word: &str, line_num: usize) -> Result<(), LoadError> {
@@ -116,10 +116,10 @@ impl StateMachine {
         line_num: usize,
         state: ParserState,
     ) -> Result<(), LoadError> {
-        return match state {
+        match state {
             ParserState::End => Err(LoadError::DanglingEnd { line: line_num }),
             _ => Ok(()),
-        };
+        }
     }
 
     fn check_if_missing_end(
@@ -127,13 +127,13 @@ impl StateMachine {
         line_num: usize,
         state: ParserState,
     ) -> Result<(), LoadError> {
-        return match state {
+        match state {
             ParserState::End => Ok(()),
             _ => Err(LoadError::MissingEnd {
                 line: line_num,
                 command: self.state.to_string(),
             }),
-        };
+        }
     }
 
     fn check_if_invalid_multiple_command(
@@ -178,13 +178,13 @@ impl StateMachine {
     }
 
     fn check_if_var_is_done(&mut self, line_num: usize) -> Result<(), LoadError> {
-        return match self.var.is_done() {
+        match self.var.is_done() {
             true => Ok(()),
             false => Err(LoadError::TooFewParameters {
                 line: line_num,
                 command: "var".to_string(),
             }),
-        };
+        }
     }
 
     fn update_variable_scope(
@@ -218,13 +218,13 @@ impl StateMachine {
         line_num: usize,
         state: ParserState,
     ) -> Result<(), LoadError> {
-        return match self.scope_stack.is_empty() {
+        match self.scope_stack.is_empty() {
             true => Err(LoadError::ScopeStackEmpty {
                 line: line_num,
                 command: state.to_string(),
             }),
             false => Ok(()),
-        };
+        }
     }
 
     fn do_work(&mut self, word: &str, line_num: usize) -> Result<(), LoadError> {
@@ -261,6 +261,6 @@ impl StateMachine {
     }
 
     fn is_cmd(word: &str) -> bool {
-        word.starts_with("$")
+        word.starts_with('$')
     }
 }

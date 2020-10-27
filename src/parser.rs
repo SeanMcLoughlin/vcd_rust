@@ -8,6 +8,12 @@ pub struct Parser {
     state_machine: StateMachine,
 }
 
+impl Default for Parser {
+    fn default() -> Self {
+        Parser::new()
+    }
+}
+
 impl Parser {
     pub fn new() -> Parser {
         Parser {
@@ -41,7 +47,7 @@ impl Parser {
     }
 
     fn parse(&mut self, line: String, line_num: usize) -> Result<(), LoadError> {
-        let words: Vec<_> = line.split(" ").filter(|c| !c.is_empty()).collect();
+        let words: Vec<_> = line.split(' ').filter(|c| !c.is_empty()).collect();
         for word in words {
             self.state_machine.parse_word(word, line_num)?
         }
@@ -64,7 +70,7 @@ mod tests {
         for (scope_type, id) in scopes.iter() {
             scope_vec.push(Scope::init(scope_type.clone(), id.to_string()));
         }
-        return scope_vec;
+        scope_vec
     }
 
     fn get_var_hash_map(variables: Vec<Variable>) -> HashMap<String, Variable> {
@@ -72,7 +78,7 @@ mod tests {
         for var in variables {
             var_hash_map.insert(var.ascii_identifier.clone(), var.clone());
         }
-        return var_hash_map;
+        var_hash_map
     }
 
     #[test]
@@ -312,7 +318,7 @@ $var tri 1 } my_tri $end"#;
                 .build()
                 .unwrap(),
             VariableBuilder::default()
-                .scope(scope_vec.clone())
+                .scope(scope_vec)
                 .var_type(VarType::Tri)
                 .bit_width(1)
                 .ascii_identifier("}".to_string())

@@ -45,7 +45,13 @@ pub struct Scope {
 
 impl PartialEq for Scope {
     fn eq(&self, other: &Self) -> bool {
-        return self.scope_type == other.scope_type && self.identifier == other.identifier;
+        self.scope_type == other.scope_type && self.identifier == other.identifier
+    }
+}
+
+impl Default for Scope {
+    fn default() -> Self {
+        Scope::new()
     }
 }
 
