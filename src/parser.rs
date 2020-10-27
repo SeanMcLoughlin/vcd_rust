@@ -518,4 +518,41 @@ $var wire 8 # data BAD_PARAM $end"#;
         };
         assert_eq!(Parser::new().parse_from_string(lines).err(), Some(exp_err));
     }
+
+    #[test]
+    fn enddefinitions_throws_no_error() {
+        let lines = r#"$enddefinitions $end"#;
+        assert!(Parser::new().parse_from_string(lines).is_ok());
+    }
+
+    #[test]
+    fn enddefinitions_with_newlines_throws_no_error() {
+        let lines = r#"$enddefinitions 
+$end"#;
+        assert!(Parser::new().parse_from_string(lines).is_ok());
+    }
+
+    #[test]
+    fn enddefinitions_missing_end_throws_error() {
+        let lines = r#"$comment my_comment $end
+$enddefinitions"#;
+        let exp_err = LoadError::MissingEnd {
+            command: "enddefinitions".to_string(),
+            line: 2,
+        };
+        assert_eq!(Parser::new().parse_from_string(lines).err(), Some(exp_err));
+    }
+
+    #[test]
+    fn enddefinitions_with_too_many_parameters_throws_error() {
+        let lines = r#"$comment Go to line 2 $end
+$comment Go to line 3 $end
+$enddefinitions INVALID_PARAMETER $end"#;
+        let exp_err = LoadError::InvalidParameterForCommand {
+            parameter: "INVALID_PARAMETER".to_string(),
+            command: "enddefinitions".to_string(),
+            line: 3,
+        };
+        assert_eq!(Parser::new().parse_from_string(lines).err(), Some(exp_err));
+    }
 }
