@@ -3,10 +3,12 @@ extern crate derive_builder;
 extern crate strum;
 #[macro_use]
 extern crate strum_macros;
+
+pub mod dumped_var_parser;
 pub mod error;
 pub mod parser;
 pub mod state_machine;
-pub mod string_helpers;
+pub mod string_utils;
 pub mod types;
 pub mod vcd;
 

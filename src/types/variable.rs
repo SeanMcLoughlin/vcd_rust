@@ -1,5 +1,6 @@
 use crate::error::LoadError;
 use crate::types::scope::Scope;
+use std::collections::HashMap;
 use std::str::FromStr;
 use strum_macros::EnumString;
 
@@ -74,6 +75,9 @@ pub struct Variable {
     pub ascii_identifier: String,
     pub reference: String,
 
+    #[builder(default = "HashMap::new()", setter(skip))]
+    pub events: HashMap<usize, usize>,
+
     #[builder(default = "BuildState::VarType", setter(skip))]
     state: BuildState,
 }
@@ -93,6 +97,7 @@ impl Variable {
             ascii_identifier: "".to_string(),
             reference: "".to_string(),
             state: BuildState::VarType,
+            events: HashMap::new(),
         }
     }
 

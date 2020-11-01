@@ -563,8 +563,20 @@ $enddefinitions INVALID_PARAMETER $end"#;
     }
 
     #[test]
-    #[ignore]
-    fn dumpvars_1() {}
+    fn dumpvars_scalar() {
+        let lines = r#"$scope module top $end
+$var wire 1 { data1 $end
+$var wire 1 } data2 $end
+$upscope $end
+$enddefinitions $end
+$dumpvars
+0{
+1}
+$end"#;
+        let vars = Parser::new().parse_from_string(lines).unwrap().variables;
+        assert_eq!(vars["{"].events, vec![(0, 0)].into_iter().collect());
+        assert_eq!(vars["}"].events, vec![(0, 1)].into_iter().collect());
+    }
 
     #[test]
     #[ignore]

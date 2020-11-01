@@ -1,12 +1,13 @@
+use crate::dumped_var_parser;
 use crate::error::LoadError;
-use crate::string_helpers::append_word;
+use crate::string_utils;
 use crate::types::{scope::Scope, variable::Variable};
 use crate::vcd::VCD;
 use std::collections::HashMap;
 use std::str::FromStr;
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash, EnumString, ToString)]
-enum ParserState {
+pub(crate) enum ParserState {
     #[strum(serialize = "end")]
     End,
     #[strum(serialize = "comment")]
@@ -42,6 +43,7 @@ pub struct StateMachine {
     comment: String,
     scope_stack: Vec<Scope>,
     state: ParserState,
+    current_time: usize,
     singular_commands_seen: HashMap<ParserState, bool>,
 }
 
@@ -60,6 +62,7 @@ impl StateMachine {
             comment: String::new(),
             scope_stack: vec![],
             vcd: VCD::new(),
+            current_time: 0,
             singular_commands_seen: StateMachine::get_singular_commands_seen(),
         }
     }
@@ -74,7 +77,7 @@ impl StateMachine {
     }
 
     pub fn parse_word(&mut self, word: &str, line_num: usize) -> Result<(), LoadError> {
-        if StateMachine::is_cmd(&word) {
+        if string_utils::is_cmd(&word) {
             self.try_transition(word, line_num)?;
         } else {
             self.do_work(word, line_num)?;
@@ -230,16 +233,19 @@ impl StateMachine {
     fn do_work(&mut self, word: &str, line_num: usize) -> Result<(), LoadError> {
         use ParserState::*;
         match self.state {
-            Comment => append_word(&mut self.comment, word),
-            Date => append_word(&mut self.vcd.date, word),
-            Version => append_word(&mut self.vcd.version, word),
+            Comment => string_utils::append_word(&mut self.comment, word),
+            Date => string_utils::append_word(&mut self.vcd.date, word),
+            Version => string_utils::append_word(&mut self.vcd.version, word),
             Timescale => self.vcd.timescale.append(word, line_num)?,
             Scope => self.scope.append(word, line_num)?,
             Var => self.var.append(word, line_num)?,
-            DumpAll => {}
-            DumpOff => {}
-            DumpOn => {}
-            DumpVars => {}
+            DumpAll | DumpOff | DumpOn | DumpVars => {
+                // TODO: Support vectors
+                let identifier = dumped_var_parser::get_identifier_from_scalar(word, line_num)?;
+                let value = dumped_var_parser::get_value_from_scalar(word, line_num)?;
+                let this_variable = self.vcd.variables.get_mut(&identifier).unwrap();
+                this_variable.events.insert(self.current_time, value);
+            }
             EndDefinitions | UpScope => {
                 StateMachine::raise_invalid_param(self.state.to_string(), line_num, word)?
             }
@@ -258,9 +264,5 @@ impl StateMachine {
             command,
             parameter: parameter.to_string(),
         })
-    }
-
-    fn is_cmd(word: &str) -> bool {
-        word.starts_with('$')
     }
 }
