@@ -1,7 +1,7 @@
 use crate::error::LoadError;
 
 pub fn get_value_from_scalar(word: &str, line_num: usize) -> Result<usize, LoadError> {
-    const RADIX: u32 = 10;
+    const RADIX: u32 = 2;
     match word.chars().collect::<Vec<char>>()[0].to_digit(RADIX) {
         Some(value) => Ok(value as usize),
         None => Err(LoadError::InvalidVarDump { line: line_num }),
@@ -13,6 +13,25 @@ pub fn get_identifier_from_scalar(word: &str, line_num: usize) -> Result<String,
     match scalar_chars.len() {
         2 => Ok(scalar_chars[1].to_string()),
         _ => Err(LoadError::InvalidVarDump { line: line_num }),
+    }
+}
+
+pub fn convert_vector_value_to_integer(word: &str, line_num: usize) -> Result<usize, LoadError> {
+    if word.len() <= 1 {
+        return Err(LoadError::InvalidVarDump { line: line_num });
+    }
+
+    let value = &word[1..];
+    let radix;
+    match word.chars().next() {
+        Some('b') => radix = 2,
+        Some('r') => radix = 10,
+        _ => return Err(LoadError::InvalidVarDump { line: line_num }),
+    }
+
+    match usize::from_str_radix(value, radix) {
+        Ok(value) => Ok(value),
+        Err(_) => Err(LoadError::InvalidVarDump { line: line_num }),
     }
 }
 

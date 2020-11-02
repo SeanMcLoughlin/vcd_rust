@@ -579,6 +579,38 @@ $end"#;
     }
 
     #[test]
+    fn dumpvars_vector() {
+        let lines = r#"$scope module top $end
+$var wire 8 { data1 $end
+$var wire 8 } data2 $end
+$upscope $end
+$enddefinitions $end
+$dumpvars
+b01010101 {
+r170 }
+$end"#;
+        let vars = Parser::new().parse_from_string(lines).unwrap().variables;
+        assert_eq!(vars["{"].events, vec![(0, 85)].into_iter().collect());
+        assert_eq!(vars["}"].events, vec![(0, 170)].into_iter().collect());
+    }
+
+    #[test]
+    fn dumpvars_scalar_and_vector() {
+        let lines = r#"$scope module top $end
+$var wire 8 { data1 $end
+$var wire 1 } data2 $end
+$upscope $end
+$enddefinitions $end
+$dumpvars
+b01010101 {
+1}
+$end"#;
+        let vars = Parser::new().parse_from_string(lines).unwrap().variables;
+        assert_eq!(vars["{"].events, vec![(0, 85)].into_iter().collect());
+        assert_eq!(vars["}"].events, vec![(0, 1)].into_iter().collect());
+    }
+
+    #[test]
     #[ignore]
     fn dumpvars_invalid_identifier_throws_error() {}
 

@@ -1,3 +1,4 @@
+use crate::dumped_var::DumpedVar;
 use crate::dumped_var_parser;
 use crate::error::LoadError;
 use crate::string_utils;
@@ -44,6 +45,8 @@ pub struct StateMachine {
     scope_stack: Vec<Scope>,
     state: ParserState,
     current_time: usize,
+    dumped_var: DumpedVar,
+    dumping_var: bool,
     singular_commands_seen: HashMap<ParserState, bool>,
 }
 
@@ -63,6 +66,8 @@ impl StateMachine {
             scope_stack: vec![],
             vcd: VCD::new(),
             current_time: 0,
+            dumped_var: DumpedVar::new(),
+            dumping_var: false,
             singular_commands_seen: StateMachine::get_singular_commands_seen(),
         }
     }
@@ -239,18 +244,40 @@ impl StateMachine {
             Timescale => self.vcd.timescale.append(word, line_num)?,
             Scope => self.scope.append(word, line_num)?,
             Var => self.var.append(word, line_num)?,
-            DumpAll | DumpOff | DumpOn | DumpVars => {
-                // TODO: Support vectors
-                let identifier = dumped_var_parser::get_identifier_from_scalar(word, line_num)?;
-                let value = dumped_var_parser::get_value_from_scalar(word, line_num)?;
-                let this_variable = self.vcd.variables.get_mut(&identifier).unwrap();
-                this_variable.events.insert(self.current_time, value);
-            }
+            DumpAll | DumpOff | DumpOn | DumpVars => self.update_dumped_var(word, line_num)?,
             EndDefinitions | UpScope => {
                 StateMachine::raise_invalid_param(self.state.to_string(), line_num, word)?
             }
             _ => {}
         }
+        Ok(())
+    }
+
+    fn update_dumped_var(&mut self, word: &str, line_num: usize) -> Result<(), LoadError> {
+        if string_utils::vector_type_being_dumped(word) {
+            self.dumped_var.value =
+                dumped_var_parser::convert_vector_value_to_integer(word, line_num)?;
+            self.dumping_var = true;
+            return Ok(());
+        } else if self.dumping_var {
+            self.dumping_var = false;
+            self.dumped_var.identifier = word.to_string();
+        } else {
+            self.dumped_var.identifier =
+                dumped_var_parser::get_identifier_from_scalar(word, line_num)?;
+            self.dumped_var.value = dumped_var_parser::get_value_from_scalar(word, line_num)?;
+        }
+
+        let this_variable = self
+            .vcd
+            .variables
+            .get_mut(&self.dumped_var.identifier)
+            .unwrap();
+        this_variable
+            .events
+            .insert(self.current_time, self.dumped_var.value);
+        self.dumped_var = DumpedVar::new();
+
         Ok(())
     }
 

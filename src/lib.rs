@@ -4,6 +4,7 @@ extern crate strum;
 #[macro_use]
 extern crate strum_macros;
 
+mod dumped_var;
 pub mod dumped_var_parser;
 pub mod error;
 pub mod parser;
