@@ -50,4 +50,7 @@ pub enum LoadError {
 
     #[error("line {}: Variable dump formatted improperly", line)]
     InvalidVarDump { line: usize },
+
+    #[error("line {}: Tried to dump variables before $enddefinitions", line)]
+    DumpWithoutEnddefinitions { line: usize },
 }

@@ -1,44 +1,30 @@
 use crate::error::LoadError;
+use crate::types::logical_value::LogicalValue;
 use crate::types::scope::Scope;
+use std::collections::HashMap;
 use std::str::FromStr;
 use strum_macros::EnumString;
 
 #[derive(Debug, Clone, Eq, PartialEq, EnumString)]
+#[strum(serialize_all = "snake_case")]
 pub enum VarType {
-    #[strum(serialize = "event")]
     Event,
-    #[strum(serialize = "integer")]
     Integer,
-    #[strum(serialize = "parameter")]
     Parameter,
-    #[strum(serialize = "real")]
     Real,
-    #[strum(serialize = "reg")]
     Reg,
-    #[strum(serialize = "supply0")]
     Supply0,
-    #[strum(serialize = "supply1")]
     Supply1,
-    #[strum(serialize = "time")]
     Time,
-    #[strum(serialize = "tri")]
     Tri,
-    #[strum(serialize = "triand")]
-    TriAnd,
-    #[strum(serialize = "trior")]
-    TriOr,
-    #[strum(serialize = "trireg")]
-    TriReg,
-    #[strum(serialize = "tri0")]
+    Triand,
+    Trior,
+    Trireg,
     Tri0,
-    #[strum(serialize = "tri1")]
     Tri1,
-    #[strum(serialize = "wand")]
-    WAnd,
-    #[strum(serialize = "wire")]
+    Wand,
     Wire,
-    #[strum(serialize = "wor")]
-    WOr,
+    Wor,
 }
 
 #[derive(Debug, Clone, Eq, PartialEq)]
@@ -74,6 +60,9 @@ pub struct Variable {
     pub ascii_identifier: String,
     pub reference: String,
 
+    #[builder(default = "HashMap::new()", setter(skip))]
+    pub transitions: HashMap<isize, LogicalValue>,
+
     #[builder(default = "BuildState::VarType", setter(skip))]
     state: BuildState,
 }
@@ -87,6 +76,7 @@ impl Default for Variable {
             ascii_identifier: "".to_string(),
             reference: "".to_string(),
             state: BuildState::VarType,
+            transitions: HashMap::new(),
         }
     }
 }
@@ -106,6 +96,10 @@ impl Variable {
 
     pub fn is_done(&self) -> bool {
         self.state == BuildState::Done
+    }
+
+    pub fn add_transition(&mut self, time: isize, value: LogicalValue) {
+        self.transitions.insert(time, value);
     }
 
     fn write_var_type(&mut self, word: &str, line_num: usize) -> Result<(), LoadError> {
@@ -173,7 +167,7 @@ mod tests {
     fn build_variable_2() {
         let exp_var = VariableBuilder::default()
             .scope(vec![])
-            .var_type(VarType::TriReg)
+            .var_type(VarType::Trireg)
             .bit_width(4)
             .ascii_identifier("e".to_string())
             .reference("my_reference".to_string())
@@ -186,6 +180,19 @@ mod tests {
         }
         assert_eq!(exp_var, act_var);
         assert!(act_var.is_done());
+    }
+
+    #[test]
+    fn add_transition() {
+        let mut var = Variable::default();
+        let mut exp_hash_map = HashMap::new();
+        exp_hash_map.insert(0, LogicalValue::X);
+        exp_hash_map.insert(15, LogicalValue::One);
+        exp_hash_map.insert(30, LogicalValue::Zero);
+        var.add_transition(0, LogicalValue::X);
+        var.add_transition(15, LogicalValue::One);
+        var.add_transition(30, LogicalValue::Zero);
+        assert_eq!(exp_hash_map, var.transitions);
     }
 
     #[test]

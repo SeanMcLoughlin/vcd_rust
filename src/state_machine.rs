@@ -1,38 +1,28 @@
 use crate::error::LoadError;
 use crate::string_helpers::append_word;
-use crate::types::{scope::Scope, variable::Variable};
+use crate::types::{dumped_var::DumpedVar, scope::Scope, variable::Variable};
 use crate::vcd::VCD;
 use std::collections::HashMap;
 use std::str::FromStr;
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash, EnumString, ToString)]
+#[strum(serialize_all = "snake_case")]
 enum ParserState {
-    #[strum(serialize = "end")]
     End,
-    #[strum(serialize = "comment")]
     Comment,
-    #[strum(serialize = "date")]
     Date,
-    #[strum(serialize = "version")]
     Version,
-    #[strum(serialize = "timescale")]
     Timescale,
-    #[strum(serialize = "scope")]
     Scope,
-    #[strum(serialize = "upscope")]
-    UpScope,
-    #[strum(serialize = "var")]
+    Upscope,
     Var,
-    #[strum(serialize = "dumpall")]
-    DumpAll,
-    #[strum(serialize = "dumpoff")]
-    DumpOff,
-    #[strum(serialize = "dumpon")]
-    DumpOn,
-    #[strum(serialize = "dumpvars")]
-    DumpVars,
-    #[strum(serialize = "enddefinitions")]
-    EndDefinitions,
+    Dumpall,
+    Dumpoff,
+    Dumpon,
+    Dumpvars,
+    Enddefinitions,
+    #[strum(disabled)]
+    ReadingDumpedVars,
 }
 
 pub struct StateMachine {
@@ -43,6 +33,8 @@ pub struct StateMachine {
     scope_stack: Vec<Scope>,
     state: ParserState,
     singular_commands_seen: HashMap<ParserState, bool>,
+    parsing_header: bool,
+    time: isize,
 }
 
 impl Default for StateMachine {
@@ -55,15 +47,13 @@ impl Default for StateMachine {
             scope_stack: vec![],
             vcd: VCD::default(),
             singular_commands_seen: StateMachine::get_singular_commands_seen(),
+            parsing_header: true,
+            time: -1,
         }
     }
 }
 
 impl StateMachine {
-    pub fn new() -> Self {
-        StateMachine::default()
-    }
-
     fn get_singular_commands_seen() -> HashMap<ParserState, bool> {
         use ParserState::*;
         let mut map: HashMap<ParserState, bool> = HashMap::new();
@@ -83,10 +73,14 @@ impl StateMachine {
     }
 
     fn try_transition(&mut self, cmd: &str, line_num: usize) -> Result<(), LoadError> {
-        let cmd_wo_dollar = &cmd[1..];
-        let next_state = ParserState::from_str(cmd_wo_dollar).unwrap();
+        use ParserState::*;
+        let next_state = if let Some(cmd_wo_dollar) = cmd.strip_prefix('$') {
+            ParserState::from_str(cmd_wo_dollar).unwrap()
+        } else {
+            ParserState::ReadingDumpedVars
+        };
         self.state = match self.state {
-            ParserState::End => {
+            End => {
                 self.check_if_end_followed_by_end(line_num, next_state)?;
                 self.check_if_invalid_multiple_command(line_num, next_state)?;
                 if next_state == ParserState::Var {
@@ -98,10 +92,22 @@ impl StateMachine {
                 self.check_if_missing_end(line_num, next_state)?;
 
                 match self.state {
-                    ParserState::Var => self.append_variable(line_num)?,
-                    ParserState::Comment => self.append_comment(),
-                    ParserState::Scope => self.push_to_scope_stack(),
-                    ParserState::UpScope => self.pop_from_scope_stack(line_num)?,
+                    Var => {
+                        self.check_if_var_is_done(line_num)?;
+                        self.append_variable();
+                    }
+                    Comment => self.append_comment(),
+                    Scope => self.push_to_scope_stack(),
+                    Upscope => {
+                        self.check_if_scope_stack_is_empty(line_num, self.state)?;
+                        self.scope_stack.pop();
+                    }
+                    Enddefinitions => self.parsing_header = false,
+                    Dumpall | Dumpoff | Dumpon | Dumpvars | ReadingDumpedVars => {
+                        if self.parsing_header {
+                            return Err(LoadError::DumpWithoutEnddefinitions { line: line_num });
+                        }
+                    }
                     _ => {}
                 }
 
@@ -157,7 +163,7 @@ impl StateMachine {
 
     pub fn cleanup(&self, line_num: usize) -> Result<(), LoadError> {
         match self.state {
-            ParserState::End | ParserState::DumpVars => {}
+            ParserState::End | ParserState::Dumpvars => {}
             _ => {
                 return Err(LoadError::MissingEnd {
                     line: line_num,
@@ -168,13 +174,11 @@ impl StateMachine {
         Ok(())
     }
 
-    fn append_variable(&mut self, line_num: usize) -> Result<(), LoadError> {
-        self.check_if_var_is_done(line_num)?;
+    fn append_variable(&mut self) {
         self.vcd
             .variables
             .insert(self.var.ascii_identifier.clone(), self.var.clone());
         self.var = Variable::default();
-        Ok(())
     }
 
     fn check_if_var_is_done(&mut self, line_num: usize) -> Result<(), LoadError> {
@@ -207,23 +211,18 @@ impl StateMachine {
         self.scope = Scope::new();
     }
 
-    fn pop_from_scope_stack(&mut self, line_num: usize) -> Result<(), LoadError> {
-        self.check_if_scope_stack_is_empty(line_num, self.state)?;
-        self.scope_stack.pop();
-        Ok(())
-    }
-
     fn check_if_scope_stack_is_empty(
         &mut self,
         line_num: usize,
         state: ParserState,
     ) -> Result<(), LoadError> {
-        match self.scope_stack.is_empty() {
-            true => Err(LoadError::ScopeStackEmpty {
+        if self.scope_stack.is_empty() {
+            Err(LoadError::ScopeStackEmpty {
                 line: line_num,
                 command: state.to_string(),
-            }),
-            false => Ok(()),
+            })
+        } else {
+            Ok(())
         }
     }
 
@@ -236,14 +235,21 @@ impl StateMachine {
             Timescale => self.vcd.timescale.append(word, line_num)?,
             Scope => self.scope.append(word, line_num)?,
             Var => self.var.append(word, line_num)?,
-            DumpAll => {}
-            DumpOff => {}
-            DumpOn => {}
-            DumpVars => {}
-            EndDefinitions | UpScope => {
+            Dumpall | Dumpoff | Dumpon | Dumpvars | ReadingDumpedVars => {
+                self.read_dump(word, line_num)?
+            }
+            Enddefinitions | Upscope => {
                 StateMachine::raise_invalid_param(self.state.to_string(), line_num, word)?
             }
             _ => {}
+        }
+        Ok(())
+    }
+
+    fn read_dump(&mut self, word: &str, line_num: usize) -> Result<(), LoadError> {
+        let dumped_var = DumpedVar::new(line_num, word)?;
+        if let Some(variable) = self.vcd.variables.get_mut(dumped_var.identifier) {
+            variable.add_transition(self.time, dumped_var.value)
         }
         Ok(())
     }

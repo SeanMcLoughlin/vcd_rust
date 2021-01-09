@@ -3,8 +3,16 @@ extern crate derive_builder;
 extern crate strum;
 #[macro_use]
 extern crate strum_macros;
-mod dumped_var;
-mod dumped_var_parser;
+
+use std::fs::File;
+use std::io::{BufRead, BufReader};
+
+use crate::error::LoadError;
+use crate::error::LoadError::{FileOpenError, FileReadError};
+use crate::parser::parse;
+use crate::state_machine::StateMachine;
+use crate::vcd::VCD;
+
 pub mod error;
 pub mod parser;
 pub mod state_machine;
@@ -12,16 +20,8 @@ pub mod string_helpers;
 pub mod types;
 pub mod vcd;
 
-use crate::error::LoadError;
-use crate::error::LoadError::{FileOpenError, FileReadError};
-use crate::parser::parse;
-use crate::state_machine::StateMachine;
-use crate::vcd::VCD;
-use std::fs::File;
-use std::io::{BufRead, BufReader};
-
 pub fn load_from_str(s: &str) -> Result<VCD, LoadError> {
-    let mut state_machine = StateMachine::new();
+    let mut state_machine = StateMachine::default();
     let mut line_num = 1;
     for line in s.lines() {
         parse(&mut state_machine, line.to_string(), line_num)?;
@@ -35,7 +35,7 @@ pub fn load_from_str(s: &str) -> Result<VCD, LoadError> {
 pub fn load_from_file(filename: String) -> Result<VCD, LoadError> {
     match File::open(filename.as_str()) {
         Ok(file) => {
-            let mut state_machine = StateMachine::new();
+            let mut state_machine = StateMachine::default();
             let mut line_num = 1;
             for line in BufReader::new(file).lines() {
                 match line {
@@ -57,13 +57,16 @@ pub fn load_from_file(filename: String) -> Result<VCD, LoadError> {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use std::collections::HashMap;
+
+    use crate::types::logical_value::LogicalValue;
     use crate::types::{
         scope::{Scope, ScopeType},
         timescale::{TimeScale, TimeUnit},
         variable::{VarType, Variable, VariableBuilder},
     };
-    use std::collections::HashMap;
+
+    use super::*;
 
     fn get_scope_vec(scopes: Vec<(ScopeType, &str)>) -> Vec<Scope> {
         let mut scope_vec: Vec<Scope> = vec![];
@@ -373,6 +376,29 @@ $var wire 8 # data $end"#;
     }
 
     #[test]
+    fn single_pre_simulation_dumped_var_can_be_parsed() {
+        let lines = r#"$timescale 1 ps $end
+        $scope module top_mod $end
+        $var wire 1 * my_bit $end
+        $enddefinitions $end
+        $dumpvars
+        0*
+        $end"#;
+        let mut exp_var: Variable = VariableBuilder::default()
+            .scope(get_scope_vec(vec![(ScopeType::Module, "top_mod")]))
+            .var_type(VarType::Wire)
+            .bit_width(1)
+            .ascii_identifier("*".to_string())
+            .reference("my_bit".to_string())
+            .build()
+            .unwrap();
+        exp_var.transitions.insert(-1, LogicalValue::Zero);
+        let exp_vars = get_var_hash_map(vec![exp_var]);
+        let act_vars = load_from_str(lines).unwrap().variables;
+        assert_eq!(exp_vars, act_vars);
+    }
+
+    #[test]
     fn var_missing_end_same_line_throws_error() {
         let lines = r#"$scope module name $end
 $var event 2 e my_var"#;
@@ -522,6 +548,24 @@ $var wire 8 # data BAD_PARAM $end"#;
             command: "upscope".to_string(),
             line: 1,
         };
+        assert_eq!(load_from_str(lines).err(), Some(exp_err));
+    }
+
+    #[test]
+    fn dump_commands_without_enddefinitions_throws_error() {
+        let mut lines: &str;
+        let mut exp_err: LoadError;
+
+        lines = r#"$dumpvars $end"#;
+        exp_err = LoadError::DumpWithoutEnddefinitions { line: 1 };
+        assert_eq!(load_from_str(lines).err(), Some(exp_err));
+
+        lines = r#"$dumpall $end"#;
+        exp_err = LoadError::DumpWithoutEnddefinitions { line: 1 };
+        assert_eq!(load_from_str(lines).err(), Some(exp_err));
+
+        lines = r#"$dumpon $end"#;
+        exp_err = LoadError::DumpWithoutEnddefinitions { line: 1 };
         assert_eq!(load_from_str(lines).err(), Some(exp_err));
     }
 }
