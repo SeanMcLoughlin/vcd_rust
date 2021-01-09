@@ -78,8 +78,8 @@ pub struct Variable {
     state: BuildState,
 }
 
-impl Variable {
-    pub fn new() -> Variable {
+impl Default for Variable {
+    fn default() -> Self {
         Variable {
             scope: vec![],
             var_type: VarType::Event,
@@ -89,7 +89,9 @@ impl Variable {
             state: BuildState::VarType,
         }
     }
+}
 
+impl Variable {
     pub fn append(&mut self, word: &str, line_num: usize) -> Result<(), LoadError> {
         match self.state {
             BuildState::VarType => self.write_var_type(word, line_num)?,
@@ -137,11 +139,11 @@ impl Variable {
 
 impl PartialEq for Variable {
     fn eq(&self, other: &Self) -> bool {
-        return self.scope == other.scope
+        self.scope == other.scope
             && self.var_type == other.var_type
             && self.bit_width == other.bit_width
             && self.ascii_identifier == other.ascii_identifier
-            && self.reference == other.reference;
+            && self.reference == other.reference
     }
 }
 
@@ -159,8 +161,8 @@ mod tests {
             .reference("data".to_string())
             .build()
             .unwrap();
-        let mut act_var = Variable::new();
-        for word in vec!["wire", "8", "#", "data"] {
+        let mut act_var = Variable::default();
+        for word in &["wire", "8", "#", "data"] {
             act_var.append(word, 0).unwrap();
         }
         assert_eq!(exp_var, act_var);
@@ -178,8 +180,8 @@ mod tests {
             .build()
             .unwrap();
 
-        let mut act_var = Variable::new();
-        for word in vec!["trireg", "4", "e", "my_reference"] {
+        let mut act_var = Variable::default();
+        for word in &["trireg", "4", "e", "my_reference"] {
             act_var.append(word, 0).unwrap();
         }
         assert_eq!(exp_var, act_var);
@@ -188,7 +190,7 @@ mod tests {
 
     #[test]
     fn invalid_var_type_throws_error() {
-        let mut act_var = Variable::new();
+        let mut act_var = Variable::default();
         let err = act_var.append("NotAVarType", 0).err();
         let exp_err = LoadError::InvalidParameterForCommand {
             line: 0,
@@ -200,7 +202,7 @@ mod tests {
 
     #[test]
     fn non_digit_bit_width_throws_error() {
-        let mut act_var = Variable::new();
+        let mut act_var = Variable::default();
         act_var.append("wire", 0).unwrap();
         let err = act_var.append("NotADigit", 0).err();
         let exp_err = LoadError::InvalidParameterForCommand {
@@ -213,8 +215,8 @@ mod tests {
 
     #[test]
     fn extra_params_in_var_throws_error() {
-        let mut act_var = Variable::new();
-        for word in vec!["wire", "8", "e", "my_reference"] {
+        let mut act_var = Variable::default();
+        for word in &["wire", "8", "e", "my_reference"] {
             act_var.append(word, 0).unwrap();
         }
         let err = act_var.append("ExtraParam", 0).err();

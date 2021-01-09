@@ -5,6 +5,9 @@ pub enum LoadError {
     #[error("Error opening file {}: {}", filename, error)]
     FileOpenError { filename: String, error: String },
 
+    #[error("line {}: Error reading file at this point", line)]
+    FileReadError { line: usize },
+
     #[error("line {}: {} missing an $end", line, command)]
     MissingEnd { command: String, line: usize },
 
@@ -44,4 +47,7 @@ pub enum LoadError {
         time_scale
     )]
     InvalidTimeScale { line: usize, time_scale: String },
+
+    #[error("line {}: Variable dump formatted improperly", line)]
+    InvalidVarDump { line: usize },
 }

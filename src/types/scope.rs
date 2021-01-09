@@ -45,17 +45,23 @@ pub struct Scope {
 
 impl PartialEq for Scope {
     fn eq(&self, other: &Self) -> bool {
-        return self.scope_type == other.scope_type && self.identifier == other.identifier;
+        self.scope_type == other.scope_type && self.identifier == other.identifier
     }
 }
 
-impl Scope {
-    pub fn new() -> Self {
+impl Default for Scope {
+    fn default() -> Self {
         Scope {
             scope_type: ScopeType::Begin,
             identifier: "".to_string(),
             state: BuildState::ScopeType,
         }
+    }
+}
+
+impl Scope {
+    pub fn new() -> Self {
+        Scope::default()
     }
 
     pub fn init(scope_type: ScopeType, identifier: String) -> Self {
