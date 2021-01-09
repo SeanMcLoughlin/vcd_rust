@@ -195,7 +195,7 @@ $end"#;
     fn timescale_command() {
         let contents = "$timescale 1 ps $end";
         let vcd = load_from_str(contents).unwrap();
-        assert_eq!(vcd.timescale, TimeScale::init(1, TimeUnit::PS));
+        assert_eq!(vcd.timescale, TimeScale::new(1, TimeUnit::PS));
     }
 
     #[test]

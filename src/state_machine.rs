@@ -1,14 +1,12 @@
-use crate::dumped_var::DumpedVar;
-use crate::dumped_var_parser;
 use crate::error::LoadError;
-use crate::string_utils;
+use crate::string_helpers::append_word;
 use crate::types::{scope::Scope, variable::Variable};
 use crate::vcd::VCD;
 use std::collections::HashMap;
 use std::str::FromStr;
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash, EnumString, ToString)]
-pub(crate) enum ParserState {
+enum ParserState {
     #[strum(serialize = "end")]
     End,
     #[strum(serialize = "comment")]
@@ -44,32 +42,26 @@ pub struct StateMachine {
     comment: String,
     scope_stack: Vec<Scope>,
     state: ParserState,
-    current_time: usize,
-    dumped_var: DumpedVar,
-    dumping_var: bool,
     singular_commands_seen: HashMap<ParserState, bool>,
 }
 
 impl Default for StateMachine {
     fn default() -> Self {
-        StateMachine::new()
+        StateMachine {
+            state: ParserState::End,
+            scope: Scope::new(),
+            var: Variable::default(),
+            comment: String::new(),
+            scope_stack: vec![],
+            vcd: VCD::default(),
+            singular_commands_seen: StateMachine::get_singular_commands_seen(),
+        }
     }
 }
 
 impl StateMachine {
     pub fn new() -> Self {
-        StateMachine {
-            state: ParserState::End,
-            scope: Scope::new(),
-            var: Variable::new(),
-            comment: String::new(),
-            scope_stack: vec![],
-            vcd: VCD::new(),
-            current_time: 0,
-            dumped_var: DumpedVar::new(),
-            dumping_var: false,
-            singular_commands_seen: StateMachine::get_singular_commands_seen(),
-        }
+        StateMachine::default()
     }
 
     fn get_singular_commands_seen() -> HashMap<ParserState, bool> {
@@ -82,7 +74,7 @@ impl StateMachine {
     }
 
     pub fn parse_word(&mut self, word: &str, line_num: usize) -> Result<(), LoadError> {
-        if string_utils::is_cmd(&word) {
+        if StateMachine::is_cmd(&word) {
             self.try_transition(word, line_num)?;
         } else {
             self.do_work(word, line_num)?;
@@ -181,7 +173,7 @@ impl StateMachine {
         self.vcd
             .variables
             .insert(self.var.ascii_identifier.clone(), self.var.clone());
-        self.var = Variable::new();
+        self.var = Variable::default();
         Ok(())
     }
 
@@ -238,46 +230,21 @@ impl StateMachine {
     fn do_work(&mut self, word: &str, line_num: usize) -> Result<(), LoadError> {
         use ParserState::*;
         match self.state {
-            Comment => string_utils::append_word(&mut self.comment, word),
-            Date => string_utils::append_word(&mut self.vcd.date, word),
-            Version => string_utils::append_word(&mut self.vcd.version, word),
+            Comment => append_word(&mut self.comment, word),
+            Date => append_word(&mut self.vcd.date, word),
+            Version => append_word(&mut self.vcd.version, word),
             Timescale => self.vcd.timescale.append(word, line_num)?,
             Scope => self.scope.append(word, line_num)?,
             Var => self.var.append(word, line_num)?,
-            DumpAll | DumpOff | DumpOn | DumpVars => self.update_dumped_var(word, line_num)?,
+            DumpAll => {}
+            DumpOff => {}
+            DumpOn => {}
+            DumpVars => {}
             EndDefinitions | UpScope => {
                 StateMachine::raise_invalid_param(self.state.to_string(), line_num, word)?
             }
             _ => {}
         }
-        Ok(())
-    }
-
-    fn update_dumped_var(&mut self, word: &str, line_num: usize) -> Result<(), LoadError> {
-        if string_utils::vector_type_being_dumped(word) {
-            self.dumped_var.value =
-                dumped_var_parser::convert_vector_value_to_integer(word, line_num)?;
-            self.dumping_var = true;
-            return Ok(());
-        } else if self.dumping_var {
-            self.dumping_var = false;
-            self.dumped_var.identifier = word.to_string();
-        } else {
-            self.dumped_var.identifier =
-                dumped_var_parser::get_identifier_from_scalar(word, line_num)?;
-            self.dumped_var.value = dumped_var_parser::get_value_from_scalar(word, line_num)?;
-        }
-
-        let this_variable = self
-            .vcd
-            .variables
-            .get_mut(&self.dumped_var.identifier)
-            .unwrap();
-        this_variable
-            .events
-            .insert(self.current_time, self.dumped_var.value);
-        self.dumped_var = DumpedVar::new();
-
         Ok(())
     }
 
@@ -291,5 +258,9 @@ impl StateMachine {
             command,
             parameter: parameter.to_string(),
         })
+    }
+
+    fn is_cmd(word: &str) -> bool {
+        word.starts_with('$')
     }
 }

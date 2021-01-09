@@ -22,6 +22,6 @@ fn parse_vcd_file() {
     );
     assert_eq!(
         vcd.timescale,
-        vcd_rust::types::timescale::TimeScale::init(1, vcd_rust::types::timescale::TimeUnit::PS)
+        vcd_rust::types::timescale::TimeScale::new(1, vcd_rust::types::timescale::TimeUnit::PS)
     )
 }

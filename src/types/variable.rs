@@ -1,6 +1,5 @@
 use crate::error::LoadError;
 use crate::types::scope::Scope;
-use std::collections::HashMap;
 use std::str::FromStr;
 use strum_macros::EnumString;
 
@@ -75,21 +74,12 @@ pub struct Variable {
     pub ascii_identifier: String,
     pub reference: String,
 
-    #[builder(default = "HashMap::new()", setter(skip))]
-    pub events: HashMap<usize, usize>,
-
     #[builder(default = "BuildState::VarType", setter(skip))]
     state: BuildState,
 }
 
 impl Default for Variable {
     fn default() -> Self {
-        Variable::new()
-    }
-}
-
-impl Variable {
-    pub fn new() -> Variable {
         Variable {
             scope: vec![],
             var_type: VarType::Event,
@@ -97,10 +87,11 @@ impl Variable {
             ascii_identifier: "".to_string(),
             reference: "".to_string(),
             state: BuildState::VarType,
-            events: HashMap::new(),
         }
     }
+}
 
+impl Variable {
     pub fn append(&mut self, word: &str, line_num: usize) -> Result<(), LoadError> {
         match self.state {
             BuildState::VarType => self.write_var_type(word, line_num)?,
@@ -170,7 +161,7 @@ mod tests {
             .reference("data".to_string())
             .build()
             .unwrap();
-        let mut act_var = Variable::new();
+        let mut act_var = Variable::default();
         for word in &["wire", "8", "#", "data"] {
             act_var.append(word, 0).unwrap();
         }
@@ -189,7 +180,7 @@ mod tests {
             .build()
             .unwrap();
 
-        let mut act_var = Variable::new();
+        let mut act_var = Variable::default();
         for word in &["trireg", "4", "e", "my_reference"] {
             act_var.append(word, 0).unwrap();
         }
@@ -199,7 +190,7 @@ mod tests {
 
     #[test]
     fn invalid_var_type_throws_error() {
-        let mut act_var = Variable::new();
+        let mut act_var = Variable::default();
         let err = act_var.append("NotAVarType", 0).err();
         let exp_err = LoadError::InvalidParameterForCommand {
             line: 0,
@@ -211,7 +202,7 @@ mod tests {
 
     #[test]
     fn non_digit_bit_width_throws_error() {
-        let mut act_var = Variable::new();
+        let mut act_var = Variable::default();
         act_var.append("wire", 0).unwrap();
         let err = act_var.append("NotADigit", 0).err();
         let exp_err = LoadError::InvalidParameterForCommand {
@@ -224,7 +215,7 @@ mod tests {
 
     #[test]
     fn extra_params_in_var_throws_error() {
-        let mut act_var = Variable::new();
+        let mut act_var = Variable::default();
         for word in &["wire", "8", "e", "my_reference"] {
             act_var.append(word, 0).unwrap();
         }

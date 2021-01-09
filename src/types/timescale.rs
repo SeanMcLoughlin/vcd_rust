@@ -50,20 +50,16 @@ impl PartialEq for TimeScale {
 
 impl Default for TimeScale {
     fn default() -> Self {
-        TimeScale::new()
-    }
-}
-
-impl TimeScale {
-    pub fn new() -> TimeScale {
         TimeScale {
             value: 0,
             unit: TimeUnit::MS,
             state: BuildState::Value,
         }
     }
+}
 
-    pub fn init(value: usize, unit: TimeUnit) -> TimeScale {
+impl TimeScale {
+    pub fn new(value: usize, unit: TimeUnit) -> TimeScale {
         TimeScale {
             value,
             unit,
@@ -114,7 +110,7 @@ mod tests {
 
     #[test]
     fn build_timescale_1() {
-        let mut time_scale = TimeScale::new();
+        let mut time_scale = TimeScale::default();
         time_scale.append("10", 0).unwrap();
         time_scale.append("ns", 0).unwrap();
         assert_eq!(time_scale.value, 10);
@@ -123,7 +119,7 @@ mod tests {
 
     #[test]
     fn build_timescale_2() {
-        let mut time_scale = TimeScale::new();
+        let mut time_scale = TimeScale::default();
         time_scale.append("42", 0).unwrap();
         time_scale.append("ms", 0).unwrap();
         assert_eq!(time_scale.value, 42);
@@ -132,7 +128,7 @@ mod tests {
 
     #[test]
     fn invalid_number_throws_error() {
-        let mut time_scale = TimeScale::new();
+        let mut time_scale = TimeScale::default();
         let err = time_scale.append("NaN", 0).err();
         let exp_err = LoadError::InvalidTimeValue {
             line: 0,
@@ -143,7 +139,7 @@ mod tests {
 
     #[test]
     fn invalid_timescale_throws_error() {
-        let mut time_scale = TimeScale::new();
+        let mut time_scale = TimeScale::default();
         time_scale.append("10", 0).unwrap();
         let err = time_scale.append("NotATimeScale", 0).err();
         let exp_err = LoadError::InvalidTimeScale {
@@ -155,7 +151,7 @@ mod tests {
 
     #[test]
     fn extra_params_in_timescale_throws_error() {
-        let mut time_scale = TimeScale::new();
+        let mut time_scale = TimeScale::default();
         time_scale.append("10", 0).unwrap();
         time_scale.append("us", 0).unwrap();
         let err = time_scale.append("ExtraParameter", 0).err();

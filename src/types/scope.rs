@@ -51,17 +51,17 @@ impl PartialEq for Scope {
 
 impl Default for Scope {
     fn default() -> Self {
-        Scope::new()
-    }
-}
-
-impl Scope {
-    pub fn new() -> Self {
         Scope {
             scope_type: ScopeType::Begin,
             identifier: "".to_string(),
             state: BuildState::ScopeType,
         }
+    }
+}
+
+impl Scope {
+    pub fn new() -> Self {
+        Scope::default()
     }
 
     pub fn init(scope_type: ScopeType, identifier: String) -> Self {
