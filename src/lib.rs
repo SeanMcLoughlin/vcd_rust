@@ -56,7 +56,7 @@ pub fn load_from_file(filename: String) -> Result<VCD, LoadError> {
 }
 
 #[cfg(test)]
-mod tests {
+mod functional_tests {
     use std::collections::HashMap;
 
     use crate::types::logical_value::LogicalValue;
@@ -376,7 +376,7 @@ $var wire 8 # data $end"#;
     }
 
     #[test]
-    fn single_pre_simulation_dumped_var_can_be_parsed() {
+    fn single_var_dumpvar_can_be_parsed() {
         let lines = r#"$timescale 1 ps $end
         $scope module top_mod $end
         $var wire 1 * my_bit $end
@@ -392,7 +392,152 @@ $var wire 8 # data $end"#;
             .reference("my_bit".to_string())
             .build()
             .unwrap();
-        exp_var.transitions.insert(-1, LogicalValue::Zero);
+        exp_var.transitions.insert(-1, LogicalValue::Value(0));
+        let exp_vars = get_var_hash_map(vec![exp_var]);
+        let act_vars = load_from_str(lines).unwrap().variables;
+        assert_eq!(exp_vars, act_vars);
+    }
+
+    #[test]
+    fn single_var_dumpall_can_be_parsed() {
+        let lines = r#"$timescale 1 ps $end
+        $scope module mod1 $end
+        $var wire 1 * my_bit $end
+        $enddefinitions $end
+        #100
+        $dumpall
+        z*
+        $end"#;
+        let mut exp_var: Variable = VariableBuilder::default()
+            .scope(get_scope_vec(vec![(ScopeType::Module, "mod1")]))
+            .var_type(VarType::Wire)
+            .bit_width(1)
+            .ascii_identifier("*".to_string())
+            .reference("my_bit".to_string())
+            .build()
+            .unwrap();
+        exp_var.transitions.insert(100, LogicalValue::Z);
+        let exp_vars = get_var_hash_map(vec![exp_var]);
+        let act_vars = load_from_str(lines).unwrap().variables;
+        assert_eq!(exp_vars, act_vars);
+    }
+
+    #[test]
+    fn single_var_dumpoff_can_be_parsed() {
+        let lines = r#"$timescale 1 ps $end
+        $scope module dumpoff_mod $end
+        $var wire 1 * my_bit $end
+        $enddefinitions $end
+        #120
+        $dumpoff
+        x*
+        $end"#;
+        let mut exp_var: Variable = VariableBuilder::default()
+            .scope(get_scope_vec(vec![(ScopeType::Module, "dumpoff_mod")]))
+            .var_type(VarType::Wire)
+            .bit_width(1)
+            .ascii_identifier("*".to_string())
+            .reference("my_bit".to_string())
+            .build()
+            .unwrap();
+        exp_var.transitions.insert(120, LogicalValue::X);
+        let exp_vars = get_var_hash_map(vec![exp_var]);
+        let act_vars = load_from_str(lines).unwrap().variables;
+        assert_eq!(exp_vars, act_vars);
+    }
+
+    #[test]
+    fn single_var_dumpon_can_be_parsed() {
+        let lines = r#"$timescale 1 ps $end
+        $scope module dumpon_mod $end
+        $var wire 1 * my_bit $end
+        $enddefinitions $end
+        #140
+        $dumpon
+        1*
+        $end"#;
+        let mut exp_var: Variable = VariableBuilder::default()
+            .scope(get_scope_vec(vec![(ScopeType::Module, "dumpon_mod")]))
+            .var_type(VarType::Wire)
+            .bit_width(1)
+            .ascii_identifier("*".to_string())
+            .reference("my_bit".to_string())
+            .build()
+            .unwrap();
+        exp_var.transitions.insert(140, LogicalValue::Value(1));
+        let exp_vars = get_var_hash_map(vec![exp_var]);
+        let act_vars = load_from_str(lines).unwrap().variables;
+        assert_eq!(exp_vars, act_vars);
+    }
+
+    #[test]
+    fn single_time0_dumped_var_can_be_parsed() {
+        let lines = r#"$timescale 1 ps $end
+        $scope module top_module $end
+        $var reg 1 * my_bit $end
+        $enddefinitions $end
+        #0
+        1*"#;
+        let mut exp_var: Variable = VariableBuilder::default()
+            .scope(get_scope_vec(vec![(ScopeType::Module, "top_module")]))
+            .var_type(VarType::Reg)
+            .bit_width(1)
+            .ascii_identifier("*".to_string())
+            .reference("my_bit".to_string())
+            .build()
+            .unwrap();
+        exp_var.transitions.insert(0, LogicalValue::Value(1));
+        let exp_vars = get_var_hash_map(vec![exp_var]);
+        let act_vars = load_from_str(lines).unwrap().variables;
+        assert_eq!(exp_vars, act_vars);
+    }
+
+    #[test]
+    fn single_var_with_multiple_transitions_can_be_parsed() {
+        let lines = r#"$timescale 1 ps $end
+        $scope module my_mod $end
+        $var wire 1 * my_bit $end
+        $enddefinitions $end
+        #0
+        0*
+        #1
+        1*
+        #2
+        x*"#;
+        let mut exp_var: Variable = VariableBuilder::default()
+            .scope(get_scope_vec(vec![(ScopeType::Module, "my_mod")]))
+            .var_type(VarType::Wire)
+            .bit_width(1)
+            .ascii_identifier("*".to_string())
+            .reference("my_bit".to_string())
+            .build()
+            .unwrap();
+        exp_var.transitions.insert(0, LogicalValue::Value(0));
+        exp_var.transitions.insert(1, LogicalValue::Value(1));
+        exp_var.transitions.insert(2, LogicalValue::X);
+        let exp_vars = get_var_hash_map(vec![exp_var]);
+        let act_vars = load_from_str(lines).unwrap().variables;
+        assert_eq!(exp_vars, act_vars);
+    }
+
+    #[test]
+    #[ignore]
+    fn single_time0_dumped_vector_var_can_be_parsed() {
+        let lines = r#"$timescale 1 ps $end
+        $scope module top_module $end
+        $var wire 4 * my_bit $end
+        $enddefinitions $end
+        #0
+        b1010 *"#;
+        let mut exp_var: Variable = VariableBuilder::default()
+            .scope(get_scope_vec(vec![(ScopeType::Module, "top_module")]))
+            .var_type(VarType::Wire)
+            .bit_width(4)
+            .ascii_identifier("*".to_string())
+            .reference("my_bit".to_string())
+            .build()
+            .unwrap();
+        exp_var.transitions.insert(0, LogicalValue::Value(1));
         let exp_vars = get_var_hash_map(vec![exp_var]);
         let act_vars = load_from_str(lines).unwrap().variables;
         assert_eq!(exp_vars, act_vars);
@@ -550,22 +695,88 @@ $var wire 8 # data BAD_PARAM $end"#;
         };
         assert_eq!(load_from_str(lines).err(), Some(exp_err));
     }
+}
+
+#[cfg(test)]
+mod dump_error_tests {
+    use super::*;
+
+    fn dump_commands<'a>() -> Vec<&'a str> {
+        vec!["dumpall", "dumpoff", "dumpon", "dumpvars"]
+    }
 
     #[test]
     fn dump_commands_without_enddefinitions_throws_error() {
-        let mut lines: &str;
+        let mut lines: String;
         let mut exp_err: LoadError;
 
-        lines = r#"$dumpvars $end"#;
-        exp_err = LoadError::DumpWithoutEnddefinitions { line: 1 };
-        assert_eq!(load_from_str(lines).err(), Some(exp_err));
+        for command in dump_commands() {
+            lines = format!(r#"${} $end"#, command);
+            exp_err = LoadError::DumpWithoutEnddefinitions { line: 1 };
+            assert_eq!(load_from_str(lines.as_str()).err(), Some(exp_err));
+        }
+    }
 
-        lines = r#"$dumpall $end"#;
-        exp_err = LoadError::DumpWithoutEnddefinitions { line: 1 };
-        assert_eq!(load_from_str(lines).err(), Some(exp_err));
+    #[test]
+    fn dump_commands_without_all_variables_throws_error() {
+        for command in dump_commands() {
+            let input = format!(
+                r#"$timescale 1 ps $end
+        $scope module mod $end
+        $var wire 1 * var1 $end
+        $var wire 1 & var2 $end
+        $comment All variable dump commands must specify all variables defined in header $end
+        $enddefinitions $end
+        #1
+        ${}
+        x&
+        $end"#,
+                command
+            );
+            let exp_err = LoadError::VarDumpMissingVariables {
+                line: 10,
+                command: command.to_string(),
+            };
+            let act_err = load_from_str(input.as_str()).err();
+            assert_eq!(Some(exp_err), act_err);
+        }
+    }
 
-        lines = r#"$dumpon $end"#;
-        exp_err = LoadError::DumpWithoutEnddefinitions { line: 1 };
-        assert_eq!(load_from_str(lines).err(), Some(exp_err));
+    #[test]
+    fn dump_commands_with_timestamp_throws_error() {
+        for command in dump_commands() {
+            let input = format!(
+                r#"$timescale 1 ps $end
+            $scope module mod $end
+            $var wire 1 ^ var1 $end
+            $var wire 1 ( var2 $end
+            $comment Variable dump commands can only define variable transitions $end
+            $enddefinitions $end
+            ${}
+            #1
+            $end"#,
+                command
+            );
+            let exp_err = LoadError::InvalidVarDump { line: 8 };
+            let act_err = load_from_str(input.as_str()).err();
+            assert_eq!(Some(exp_err), act_err);
+        }
+    }
+
+    #[test]
+    fn dumpoff_with_variables_not_x_throws_error() {
+        let input = r#"$timescale 1 ps $end
+            $scope module mod $end
+            $var wire 1 ^ var1 $end
+            $var wire 1 ( var2 $end
+            $comment dumpoff commands have to specify all variables as X $end
+            $enddefinitions $end
+            $dumpoff
+            1^
+            1(
+            $end"#;
+        let exp_err = LoadError::DumpoffWithNonXVars { line: 8 };
+        let act_err = load_from_str(input).err();
+        assert_eq!(Some(exp_err), act_err);
     }
 }

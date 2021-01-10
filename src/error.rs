@@ -51,6 +51,22 @@ pub enum LoadError {
     #[error("line {}: Variable dump formatted improperly", line)]
     InvalidVarDump { line: usize },
 
+    #[error(
+        "line {}: Variable dump command ${} needs to specify all defined variables",
+        line,
+        command
+    )]
+    VarDumpMissingVariables { line: usize, command: String },
+
+    #[error(
+        "line {}: $dumpoff command is specified, but dumped variables are not X",
+        line
+    )]
+    DumpoffWithNonXVars { line: usize },
+
+    #[error("line {}: Timestamp formatted improperly", line)]
+    InvalidTimestamp { line: usize },
+
     #[error("line {}: Tried to dump variables before $enddefinitions", line)]
     DumpWithoutEnddefinitions { line: usize },
 }

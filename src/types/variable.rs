@@ -138,6 +138,7 @@ impl PartialEq for Variable {
             && self.bit_width == other.bit_width
             && self.ascii_identifier == other.ascii_identifier
             && self.reference == other.reference
+            && self.transitions == other.transitions
     }
 }
 
@@ -187,11 +188,11 @@ mod tests {
         let mut var = Variable::default();
         let mut exp_hash_map = HashMap::new();
         exp_hash_map.insert(0, LogicalValue::X);
-        exp_hash_map.insert(15, LogicalValue::One);
-        exp_hash_map.insert(30, LogicalValue::Zero);
+        exp_hash_map.insert(15, LogicalValue::Value(1));
+        exp_hash_map.insert(30, LogicalValue::Value(0));
         var.add_transition(0, LogicalValue::X);
-        var.add_transition(15, LogicalValue::One);
-        var.add_transition(30, LogicalValue::Zero);
+        var.add_transition(15, LogicalValue::Value(1));
+        var.add_transition(30, LogicalValue::Value(0));
         assert_eq!(exp_hash_map, var.transitions);
     }
 
